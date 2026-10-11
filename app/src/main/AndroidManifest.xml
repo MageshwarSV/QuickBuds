@@ -34,6 +34,8 @@
     -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- The hourly update check waits for a network (JobScheduler needs this for that constraint). -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!--
       ONLY for the crash reporter's API<=28 fallback path, where there is no
@@ -184,6 +186,11 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+        <!-- The hourly update check (JobScheduler): runs with the app closed. -->
+        <service
+            android:name=".ui.UpdateJob"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false" />
         <!-- The sleep timer's few seconds in the foreground: audio focus needs one on Android 15+. -->
         <service
             android:name=".sleep.SleepFireService"

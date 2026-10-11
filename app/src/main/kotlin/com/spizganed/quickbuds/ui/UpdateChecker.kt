@@ -10,6 +10,7 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import com.spizganed.quickbuds.R
+import com.spizganed.quickbuds.bluetooth.PacketLogger
 import org.json.JSONObject
 import java.io.File
 
@@ -27,16 +28,14 @@ object UpdateChecker {
     /** App update › Check for updates (default on): the popup on start and the background notification. */
     const val KEY_AUTO = "updateAutoCheck"
     private const val KEY_LAST_CHECK = "updateLastCheck"
-    private const val KEY_BACKGROUND_CHECK = "updateBackgroundCheck"
     /** The version the popup showed: the popup does not come again for it. */
     private const val KEY_ANNOUNCED = "updateAnnounced"
     /** The version the background check found and notified: the notification does not come again for it. */
     private const val KEY_NOTIFIED = "updateNotified"
     /** The version the user ignored on the popup: neither the popup nor the notification comes for it. */
     private const val KEY_IGNORED = "updateIgnored"
-    /** Opening the app looks again after 15 min; the service looks every hour (its tick is 60 min, so 50 here). */
+    /** Opening the app looks again after 15 min. The background check runs when [UpdateJob] says (about hourly). */
     private const val START_INTERVAL_MS = 15 * 60 * 1000L
-    private const val BACKGROUND_INTERVAL_MS = 50 * 60 * 1000L
 
     const val CHANNEL = "QuickBuds_Update"
     private const val NOTIFICATION_ID = 9
@@ -130,6 +129,7 @@ object UpdateChecker {
     fun maybeAutoCheck(activity: Activity) {
         // The last update's download (UpdateActivity), ~2.5 MB, has been installed or abandoned by now.
         java.io.File(activity.cacheDir, "quickbuds-update.apk").delete()
+        UpdateJob.sync(activity)
         val prefs = prefs(activity)
         if (!prefs.getBoolean(KEY_AUTO, true)) return
         val installed = installed(activity)
@@ -171,26 +171,33 @@ object UpdateChecker {
         ) { activity.startActivity(Intent(activity, UpdateActivity::class.java)) }
     }
 
+    /** App update › Check for updates (default on). */
+    fun autoEnabled(c: Context) = prefs(c).getBoolean(KEY_AUTO, true)
+
     /**
-     * From [com.spizganed.quickbuds.bluetooth.BudsService], so it runs with the app closed: every hour, silent on
-     * any failure. A new version posts one notification, also when the popup showed it; not one the user ignored.
-     * A tap opens the update screen; a swipe dismisses it.
+     * From [UpdateJob], so it runs with the app closed. Silent on any failure. A new version posts one notification,
+     * also when the popup showed it; not one the user ignored. A tap opens the update screen; a swipe dismisses it.
+     * [done] runs once the check is over, whatever the outcome.
      */
-    fun backgroundCheck(context: Context) {
+    fun backgroundCheck(context: Context, done: () -> Unit = {}) {
         val prefs = prefs(context)
-        if (!prefs.getBoolean(KEY_AUTO, true)) return
-        val now = System.currentTimeMillis()
-        if (now - prefs.getLong(KEY_BACKGROUND_CHECK, 0L) < BACKGROUND_INTERVAL_MS) return
-        prefs.edit().putLong(KEY_BACKGROUND_CHECK, now).apply()
+        if (!autoEnabled(context)) return done()
         val app = context.applicationContext
         val installed = installed(app)
         Thread {
-            val release = runCatching { fetch() }.getOrNull() ?: return@Thread
-            if (release.apkUrl == null || !isNewer(release.tag, installed)) return@Thread
-            if (release.tag == prefs.getString(KEY_NOTIFIED, null) || release.tag == prefs.getString(KEY_IGNORED, null)) return@Thread
-            prefs.edit().putString(KEY_NOTIFIED, release.tag).apply()
-            com.spizganed.quickbuds.bluetooth.PacketLogger.log("UPDATE: ${release.tag} found, notified")
-            notify(app, release.tag, installed)
+            try {
+                val release = runCatching { fetch() }
+                    .onFailure { PacketLogger.log("UPDATE: check failed: ${it.message}") }
+                    .getOrNull() ?: return@Thread
+                PacketLogger.log("UPDATE: checked, latest ${release.tag}, installed $installed")
+                if (release.apkUrl == null || !isNewer(release.tag, installed)) return@Thread
+                if (release.tag == prefs.getString(KEY_NOTIFIED, null) || release.tag == prefs.getString(KEY_IGNORED, null)) return@Thread
+                prefs.edit().putString(KEY_NOTIFIED, release.tag).apply()
+                PacketLogger.log("UPDATE: ${release.tag} found, notified")
+                notify(app, release.tag, installed)
+            } finally {
+                done()
+            }
         }.apply { isDaemon = true }.start()
     }
 
@@ -210,8 +217,7 @@ object UpdateChecker {
             .setContentIntent(open)
             .setAutoCancel(true)
             .build()
-        runCatching { nm.notify(NOTIFICATION_ID, n) }
-            .onFailure { com.spizganed.quickbuds.bluetooth.PacketLogger.error("update notification", it) }
+        runCatching { nm.notify(NOTIFICATION_ID, n) }.onFailure { PacketLogger.error("update notification", it) }
     }
 
     /** The update screen is open, or the popup showed: the notification has said its piece. */

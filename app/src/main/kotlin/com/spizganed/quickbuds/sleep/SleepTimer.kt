@@ -218,7 +218,11 @@ class SleepTimerReceiver : BroadcastReceiver() {
                 }
             }
             SleepTimer.ACTION_CANCEL -> SleepTimer.cancel(context)
-            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> SleepTimer.rearm(context)
+            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> {
+                SleepTimer.rearm(context)
+                // Not the sleep timer's own, but the same moment: the update check's job, in case Android dropped it.
+                com.spizganed.quickbuds.ui.UpdateJob.sync(context)
+            }
         }
     }
 }

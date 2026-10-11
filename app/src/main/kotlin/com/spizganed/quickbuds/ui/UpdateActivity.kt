@@ -118,7 +118,10 @@ class UpdateActivity : Activity() {
 
         val prefs = getSharedPreferences(ThemeRes.PREFS_NAME, MODE_PRIVATE)
         val autoSwitch = SettingRowFactory.buildSwitch(this, prefs.getBoolean(UpdateChecker.KEY_AUTO, true))
-        autoSwitch.setOnCheckedChangeListener { _, on -> prefs.edit().putBoolean(UpdateChecker.KEY_AUTO, on).apply() }
+        autoSwitch.setOnCheckedChangeListener { _, on ->
+            prefs.edit().putBoolean(UpdateChecker.KEY_AUTO, on).apply()
+            UpdateJob.sync(this)
+        }
         root.addView(SettingRowFactory.card(this).apply {
             (layoutParams as LinearLayout.LayoutParams).topMargin = dp(14f)
             addView(SettingRowFactory.build(this@UpdateActivity, R.drawable.ic_update, R.string.update_auto_title, R.string.update_auto_sub, autoSwitch) { autoSwitch.performClick() })
