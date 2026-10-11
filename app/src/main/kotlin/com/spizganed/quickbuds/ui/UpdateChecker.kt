@@ -28,11 +28,15 @@ object UpdateChecker {
     const val KEY_AUTO = "updateAutoCheck"
     private const val KEY_LAST_CHECK = "updateLastCheck"
     private const val KEY_BACKGROUND_CHECK = "updateBackgroundCheck"
-    /** The version the popup showed (viewed or ignored): never shown again, and no notification for it. */
+    /** The version the popup showed: the popup does not come again for it. */
     private const val KEY_ANNOUNCED = "updateAnnounced"
-    /** The version the background check found and notified. */
+    /** The version the background check found and notified: the notification does not come again for it. */
     private const val KEY_NOTIFIED = "updateNotified"
-    private const val MIN_INTERVAL_MS = 12 * 60 * 60 * 1000L
+    /** The version the user ignored on the popup: neither the popup nor the notification comes for it. */
+    private const val KEY_IGNORED = "updateIgnored"
+    /** Opening the app looks again after 15 min; the service looks every hour (its tick is 60 min, so 50 here). */
+    private const val START_INTERVAL_MS = 15 * 60 * 1000L
+    private const val BACKGROUND_INTERVAL_MS = 50 * 60 * 1000L
 
     const val CHANNEL = "QuickBuds_Update"
     private const val NOTIFICATION_ID = 9
@@ -120,7 +124,7 @@ object UpdateChecker {
     private fun prefs(c: Context) = c.getSharedPreferences(ThemeRes.PREFS_NAME, Context.MODE_PRIVATE)
 
     /**
-     * Check on start: at most every 12 h, silent on any failure, and one popup per new version (View or Ignore),
+     * Check on start: at most every 15 min, silent on any failure, and one popup per new version (View or Ignore),
      * never again for the same tag. A version the background check already found shows at once, without a fetch.
      */
     fun maybeAutoCheck(activity: Activity) {
@@ -130,50 +134,62 @@ object UpdateChecker {
         if (!prefs.getBoolean(KEY_AUTO, true)) return
         val installed = installed(activity)
         prefs.getString(KEY_NOTIFIED, null)?.let { found ->
-            if (found != prefs.getString(KEY_ANNOUNCED, null) && isNewer(found, installed)) return popup(activity, found, installed)
+            if (shouldPopup(prefs, found) && isNewer(found, installed)) return popup(activity, found, installed)
         }
         val now = System.currentTimeMillis()
-        if (now - prefs.getLong(KEY_LAST_CHECK, 0L) < MIN_INTERVAL_MS) return
+        if (now - prefs.getLong(KEY_LAST_CHECK, 0L) < START_INTERVAL_MS) return
         prefs.edit().putLong(KEY_LAST_CHECK, now).apply()
         Thread {
             val release = runCatching { fetch() }.getOrNull() ?: return@Thread
             if (release.apkUrl == null || !isNewer(release.tag, installed)) return@Thread
-            if (prefs.getString(KEY_ANNOUNCED, null) == release.tag) return@Thread
+            if (!shouldPopup(prefs, release.tag)) return@Thread
             Handler(Looper.getMainLooper()).post { popup(activity, release.tag, installed) }
         }.apply { isDaemon = true }.start()
     }
 
-    /** "QuickBuds X is available": View opens the update screen, Ignore skips this version. Either way, once. */
+    private fun shouldPopup(prefs: android.content.SharedPreferences, tag: String) =
+        tag != prefs.getString(KEY_ANNOUNCED, null) && tag != prefs.getString(KEY_IGNORED, null)
+
+    /**
+     * "QuickBuds X is available", once per version. View opens the update screen. Ignore skips this version:
+     * its notification goes, and none comes again for it.
+     */
     private fun popup(activity: Activity, tag: String, installed: String) {
         if (activity.isFinishing || activity.isDestroyed) return
-        prefs(activity).edit().putString(KEY_ANNOUNCED, tag).apply()
-        clearNotification(activity)
+        val prefs = prefs(activity)
+        prefs.edit().putString(KEY_ANNOUNCED, tag).apply()
         ConfirmDialog.show(
             activity,
             activity.getString(R.string.update_found_title, tag.removePrefix("v")),
             activity.getString(R.string.update_found_body, installed),
             activity.getString(R.string.update_found_view),
-            cancelRes = R.string.update_ignore
+            cancelRes = R.string.update_ignore,
+            onCancel = {
+                prefs.edit().putString(KEY_IGNORED, tag).apply()
+                clearNotification(activity)
+            }
         ) { activity.startActivity(Intent(activity, UpdateActivity::class.java)) }
     }
 
     /**
-     * From [com.spizganed.quickbuds.bluetooth.BudsService], so it runs with the app closed: at most every 12 h,
-     * silent on any failure. A new version posts one notification; a tap opens the update screen, a swipe ignores it.
+     * From [com.spizganed.quickbuds.bluetooth.BudsService], so it runs with the app closed: every hour, silent on
+     * any failure. A new version posts one notification, also when the popup showed it; not one the user ignored.
+     * A tap opens the update screen; a swipe dismisses it.
      */
     fun backgroundCheck(context: Context) {
         val prefs = prefs(context)
         if (!prefs.getBoolean(KEY_AUTO, true)) return
         val now = System.currentTimeMillis()
-        if (now - prefs.getLong(KEY_BACKGROUND_CHECK, 0L) < MIN_INTERVAL_MS) return
+        if (now - prefs.getLong(KEY_BACKGROUND_CHECK, 0L) < BACKGROUND_INTERVAL_MS) return
         prefs.edit().putLong(KEY_BACKGROUND_CHECK, now).apply()
         val app = context.applicationContext
         val installed = installed(app)
         Thread {
             val release = runCatching { fetch() }.getOrNull() ?: return@Thread
             if (release.apkUrl == null || !isNewer(release.tag, installed)) return@Thread
-            if (release.tag == prefs.getString(KEY_NOTIFIED, null) || release.tag == prefs.getString(KEY_ANNOUNCED, null)) return@Thread
+            if (release.tag == prefs.getString(KEY_NOTIFIED, null) || release.tag == prefs.getString(KEY_IGNORED, null)) return@Thread
             prefs.edit().putString(KEY_NOTIFIED, release.tag).apply()
+            com.spizganed.quickbuds.bluetooth.PacketLogger.log("UPDATE: ${release.tag} found, notified")
             notify(app, release.tag, installed)
         }.apply { isDaemon = true }.start()
     }

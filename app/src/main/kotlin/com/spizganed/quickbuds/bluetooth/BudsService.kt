@@ -165,7 +165,7 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         caseReminder = CaseReminderMonitor(this)
         other = OtherEarbudsMonitor(this).also { it.supportedBudsConnected = { manager?.isConnected() == true } }
         autoAnswer = com.spizganed.quickbuds.calls.AutoAnswerMonitor(this).also { it.update() }
-        // A new version on GitHub: a notification, also with the app closed. The check itself waits 12 h between looks.
+        // A new version on GitHub: a notification, also with the app closed. Then every hour.
         handler.postDelayed(updateCheck, 30_000L)
 
         // Not exported on every Android version: before 13 a plain registration let any app send widget commands
