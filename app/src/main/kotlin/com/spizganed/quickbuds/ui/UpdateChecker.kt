@@ -27,15 +27,13 @@ object UpdateChecker {
 
     /** App update › Check for updates (default on): the popup on start and the background notification. */
     const val KEY_AUTO = "updateAutoCheck"
-    private const val KEY_LAST_CHECK = "updateLastCheck"
     /** The version the popup showed: the popup does not come again for it. */
     private const val KEY_ANNOUNCED = "updateAnnounced"
     /** The version the background check found and notified: the notification does not come again for it. */
     private const val KEY_NOTIFIED = "updateNotified"
     /** The version the user ignored on the popup: neither the popup nor the notification comes for it. */
     private const val KEY_IGNORED = "updateIgnored"
-    /** Opening the app looks again after 15 min. The background check runs when [UpdateJob] says (about hourly). */
-    private const val START_INTERVAL_MS = 15 * 60 * 1000L
+    // Opening the app always looks. The background check runs when [UpdateJob] says (every 15 min).
 
     const val CHANNEL = "QuickBuds_Update"
     private const val NOTIFICATION_ID = 9
@@ -123,7 +121,7 @@ object UpdateChecker {
     private fun prefs(c: Context) = c.getSharedPreferences(ThemeRes.PREFS_NAME, Context.MODE_PRIVATE)
 
     /**
-     * Check on start: at most every 15 min, silent on any failure, and one popup per new version (View or Ignore),
+     * Check on start: every time the app opens, silent on any failure, and one popup per new version (View or Ignore),
      * never again for the same tag. A version the background check already found shows at once, without a fetch.
      */
     fun maybeAutoCheck(activity: Activity) {
@@ -136,9 +134,6 @@ object UpdateChecker {
         prefs.getString(KEY_NOTIFIED, null)?.let { found ->
             if (shouldPopup(prefs, found) && isNewer(found, installed)) return popup(activity, found, installed)
         }
-        val now = System.currentTimeMillis()
-        if (now - prefs.getLong(KEY_LAST_CHECK, 0L) < START_INTERVAL_MS) return
-        prefs.edit().putLong(KEY_LAST_CHECK, now).apply()
         Thread {
             val release = runCatching { fetch() }.getOrNull() ?: return@Thread
             if (release.apkUrl == null || !isNewer(release.tag, installed)) return@Thread

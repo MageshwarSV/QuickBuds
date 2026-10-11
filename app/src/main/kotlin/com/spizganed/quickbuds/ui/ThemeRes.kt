@@ -158,7 +158,7 @@ object ThemeRes {
         "hu" to "Magyar", "nl" to "Nederlands", "pl" to "Polski", "pt" to "Português",
         "ro" to "Română", "sv" to "Svenska", "vi" to "Tiếng Việt", "tr" to "Türkçe",
         "el" to "Ελληνικά", "ru" to "Русский", "uk" to "Українська",
-        "hi" to "हिन्दी", "bn" to "বাংলা", "th" to "ไทย"
+        "hi" to "हिन्दी", "bn" to "বাংলা", "ta" to "தமிழ்", "th" to "ไทย"
     )
     private const val KEY_LANGUAGE = "appLanguage"
 

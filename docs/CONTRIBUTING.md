@@ -82,7 +82,7 @@ Read before changing anything:
 - **Never guess a payload or a command number.** A wrong write to the buds fails silently. Capture
   what HeyMelody sends first ([PACKET-CAPTURE.md](/docs/PACKET-CAPTURE.md)), then read the result back.
 - **Docs change with the code.** A protocol change comes with its PROTOCOL.md entry in the same commit.
-- **A new user-visible string needs all 26 translations** (`app/src/main/res/values-*`). Machine
+- **A new user-visible string needs all 27 translations** (`app/src/main/res/values-*`). Machine
   drafts are fine; lint does not catch a missing one.
 - No new dependencies, no Material Components. Every activity is portrait-locked by hand.
 - Widget layouts are generated: edit `scripts/widget-layouts.py` and rerun it, never the XML.

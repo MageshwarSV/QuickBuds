@@ -3955,7 +3955,7 @@ dependencies = [
 
 [[package]]
 name = "quickbuds"
-version = "4.10.3"
+version = "4.10.4"
 dependencies = [
  "dbus",
  "gtk",

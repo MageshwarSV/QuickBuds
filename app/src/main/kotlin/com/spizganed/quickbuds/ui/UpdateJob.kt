@@ -9,9 +9,9 @@ import android.content.Context
 import com.spizganed.quickbuds.bluetooth.PacketLogger
 
 /**
- * The background update check, run by Android about once an hour with a network: also with the app closed, the
- * background service stopped, after a reboot (persisted) and after an update. Was: a timer in BudsService, which
- * did not run once Android stopped the service.
+ * The background update check, run by Android every 15 min (its shortest period) with a network: also with the
+ * app closed, the background service stopped, after a reboot (persisted) and after an update. Was: a timer in
+ * BudsService, which did not run once Android stopped the service.
  */
 class UpdateJob : JobService() {
 
@@ -24,13 +24,17 @@ class UpdateJob : JobService() {
 
     companion object {
         private const val JOB_ID = 7101
-        private const val PERIOD_MS = 60 * 60_000L
+        /** Android's shortest period for a repeating job. A new release is seen within about 15 min. */
+        private const val PERIOD_MS = 15 * 60_000L
 
-        /** Schedules the hourly check, or cancels it when "Check for updates" is off. A scheduled job is kept. */
+        /**
+         * Schedules the check, or cancels it when "Check for updates" is off. A scheduled job with this period is
+         * kept (scheduling again restarts its clock); one with another period (the hourly 4.10.3 job) is replaced.
+         */
         fun sync(context: Context) {
             val js = context.getSystemService(JobScheduler::class.java) ?: return
             if (!UpdateChecker.autoEnabled(context)) return js.cancel(JOB_ID)
-            if (js.getPendingJob(JOB_ID) != null) return
+            if (js.getPendingJob(JOB_ID)?.intervalMillis == PERIOD_MS) return
             val job = JobInfo.Builder(JOB_ID, ComponentName(context, UpdateJob::class.java))
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
                 .setPeriodic(PERIOD_MS)

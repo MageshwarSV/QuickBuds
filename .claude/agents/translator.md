@@ -1,6 +1,6 @@
 ---
 name: translator
-description: Adds or changes user-visible strings in all 26 locales. Give it the key names and the English text.
+description: Adds or changes user-visible strings in all 27 locales. Give it the key names and the English text.
 model: sonnet
 tools: Read, Edit, Grep, Glob, Bash
 ---
