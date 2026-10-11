@@ -16,6 +16,15 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Widget taps tick through the vibrator (Haptics.tick); no view of ours is on screen then. -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Loss protection: keeps signal reads going for a few minutes after the screen goes off (ProximityMonitor). -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Sleep timer: an exact time, when the user allows it (Settings › Alarms and reminders). -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Sleep timer: alarms do not survive a reboot; it is set again at boot. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Auto-answer (Earbud settings): see a ringing call, and answer it. Asked when the user turns it on. -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
 
     <!--
       Needed only so the app can hand a downloaded APK to Android's own package
@@ -58,6 +67,8 @@
     <application
         android:name=".QuickBudsApp"
         android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
@@ -150,6 +161,37 @@
 
         <activity
             android:name=".ui.ModelActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.CatalogActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.UsageActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.SleepTimerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <!-- Not exported: our own alarm and Cancel; the system still delivers boot and package-replaced. -->
+        <receiver
+            android:name=".sleep.SleepTimerReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+        <!-- The sleep timer's few seconds in the foreground: audio focus needs one on Android 15+. -->
+        <service
+            android:name=".sleep.SleepFireService"
+            android:foregroundServiceType="shortService"
+            android:exported="false" />
+        <!-- Portrait: the compass heading follows the phone's own axes. -->
+        <activity
+            android:name=".ui.FindNearbyActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity

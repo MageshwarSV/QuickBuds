@@ -81,6 +81,8 @@ class BudsConnectionManager(private val context: Context) {
         fun onPersonalNoiseResult(result: Int) {}
         /** Personalized ANC: the `0x8412` ack status (0 = accepted). */
         fun onPersonalNoiseAck(status: Int) {}
+        /** Find my earbuds: the `8400` ack, [accepted] when its status is 0 (PROTOCOL.md, "Find my earbuds"). */
+        fun onFindToneAck(accepted: Boolean) {}
         /** Tap sensitivity from `0x8133`: the level (1..5) and the buds' default. */
         fun onTapLevel(level: Int, default: Int) {}
 
@@ -133,7 +135,26 @@ class BudsConnectionManager(private val context: Context) {
 
         /** The buds reported which commands they accept (`0x8100`), see [Capabilities]. */
         fun onCapabilities() {}
+
+        /**
+         * The link dropped without our [disconnect] (sent just before [onConnected] false). [Drop] says
+         * why, as far as the link can tell: loss protection warns only for [Drop.LOST].
+         */
+        fun onLinkDropped(drop: Drop) {}
     }
+
+    /** Why a link we did not close went down. */
+    enum class Drop {
+        /** The all-zero wear push came first: the lid closed (PROTOCOL.md §8). */
+        CASE_CLOSED,
+        /** A write of ours restarts the buds (codec, power saving). */
+        RESTART,
+        /** Anything else: out of range, buds off, Bluetooth turning off. */
+        LOST
+    }
+
+    /** The buds of the current or last link. */
+    val device: BluetoothDevice? get() = lastDevice
 
     private val listeners = CopyOnWriteArrayList<Listener>()
 
@@ -179,34 +200,8 @@ class BudsConnectionManager(private val context: Context) {
 
     fun isConnected(): Boolean = isReady && bluetoothSocket?.isConnected == true
 
-    /**
-     * Drops or restores the phone's own audio link, the way HeyMelody's Connect/Disconnect does:
-     * the hidden `connect()`/`disconnect()` on the A2DP and Headset proxies, by reflection. Headset `connect()`
-     * is refused for ordinary apps, so connecting asks A2DP only and the system brings HFP up by
-     * itself (~10 s). Connecting an already-connected profile is a no-op.
-     */
-    fun setPhoneAudio(device: BluetoothDevice, on: Boolean) {
-        val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter ?: return
-        val method = if (on) "connect" else "disconnect"
-        val profiles = if (on) listOf(BluetoothProfile.A2DP)
-            else listOf(BluetoothProfile.HEADSET, BluetoothProfile.A2DP)
-        for (p in profiles) {
-            adapter.getProfileProxy(context, object : BluetoothProfile.ServiceListener {
-                override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
-                    try {
-                        val ok = proxy.javaClass.getMethod(method, BluetoothDevice::class.java)
-                            .invoke(proxy, device)
-                        log("Audio $method profile=$profile -> $ok")
-                    } catch (e: Exception) {
-                        log("Audio $method profile=$profile failed: ${e.cause ?: e}")
-                    } finally {
-                        adapter.closeProfileProxy(profile, proxy)
-                    }
-                }
-                override fun onServiceDisconnected(profile: Int) {}
-            }, p)
-        }
-    }
+    /** Drops or restores the phone's own audio link to the buds ([PhoneAudio]): the pill's Connect / Disconnect. */
+    fun setPhoneAudio(device: BluetoothDevice, on: Boolean) = PhoneAudio.set(context, device, on) { log(it) }
 
     fun connect(device: BluetoothDevice, withAudio: Boolean = false) {
         if (isConnecting || isConnected()) {
@@ -1011,6 +1006,12 @@ class BudsConnectionManager(private val context: Context) {
                     // Our own disconnect() closed this socket, or a newer connection has already
                     // replaced it — either way this thread must not tear anything down.
                     if (cancelled || connectedThread !== this) break
+                    val drop = when {
+                        caseClosing -> Drop.CASE_CLOSED
+                        audioAfterRestart -> Drop.RESTART
+                        else -> Drop.LOST
+                    }
+                    handler.post { listeners.forEach { it.onLinkDropped(drop) } }
                     if (caseClosing) {
                         // The buds are off in a closed case; opening it brings ACL_CONNECTED back.
                         log("Case closed")
@@ -1476,6 +1477,10 @@ class BudsConnectionManager(private val context: Context) {
         }
         if (cmd == 0x8412 && payload.isNotEmpty()) {
             handler.post { listeners.forEach { it.onPersonalNoiseAck(payload[0].toInt() and 0xFF) } }
+            return
+        }
+        if (cmd == 0x8400 && payload.isNotEmpty()) {
+            handler.post { listeners.forEach { it.onFindToneAck(payload[0].toInt() == 0) } }
             return
         }
         if (cmd == OpoProtocol.CMD_ACTIVE_REPORT && payload.size >= 2 &&

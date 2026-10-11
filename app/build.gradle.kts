@@ -84,4 +84,6 @@ kotlin {
 
 dependencies {
     implementation("androidx.core:core:1.13.1")
+    // Tests only, not in the APK: the usage and loss-protection logic (`./gradlew testDebugUnitTest`).
+    testImplementation("junit:junit:4.13.2")
 }

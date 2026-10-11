@@ -8,11 +8,17 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import com.spizganed.quickbuds.R
+import com.spizganed.quickbuds.bluetooth.DeviceCatalog
+import com.spizganed.quickbuds.bluetooth.ConnectedAudio
+import com.spizganed.quickbuds.usage.Usage
+import com.spizganed.quickbuds.usage.UsageDevice
 import com.spizganed.quickbuds.protocol.ModelCatalog
 import com.spizganed.quickbuds.widget.AncWidgetProvider
 
 /**
- * The model list, opened from the header button before the connect pill: Automatic (what
+ * The model list, opened from the header button before the connect pill. First "Your earbuds": every pair that ever
+ * connected to this phone, any brand, with its brand and model; the connected ones first and marked. A tap opens
+ * its usage. Then Automatic (what
  * [ModelCatalog] detects) and every model HeyMelody's list has, by brand (realme and its DIZO
  * included). A pick overrides detection until Automatic is picked again or
  * other buds connect. The rows are built once and only recoloured, so the selection outline slides
@@ -36,6 +42,19 @@ class ModelActivity : Activity() {
         val root = SettingRowFactory.screen(this)
         selection = SelectionSlider(root)
         root.addView(SettingRowFactory.title(this, R.string.model_title))
+
+        // Your earbuds: filled once the device list and the connected set are read.
+        root.addView(SettingRowFactory.sectionLabel(this, R.string.model_yours))
+        yours = SettingRowFactory.splitList(this)
+        root.addView(yours)
+        // Every brand and series QuickBuds knows, and what it does with each kind of device.
+        root.addView(SettingRowFactory.splitList(this).also { list ->
+            (list.layoutParams as LinearLayout.LayoutParams).topMargin = ThemeRes.dp(this, 8f)
+            SettingRowFactory.addSplit(list, SettingRowFactory.build(this, R.drawable.ic_model_list, R.string.catalog_title,
+                R.string.catalog_sub, SettingRowFactory.buildChevron(this)) {
+                startActivity(android.content.Intent(this, CatalogActivity::class.java))
+            })
+        })
 
         fun row(id: String?, title: String, subtitle: String?, onPick: () -> Unit): View {
             val r = SettingRowFactory.build(this, 0, 0, 0, null) {
@@ -75,6 +94,55 @@ class ModelActivity : Activity() {
             addView(root)
         })
         show()
+    }
+
+    private lateinit var yours: LinearLayout
+
+    override fun onResume() {
+        super.onResume()
+        Usage.load(this) { s -> ConnectedAudio.query(this) { connected -> fillYours(s, connected?.keys.orEmpty()) } }
+    }
+
+    /**
+     * One row per pair of earbuds this phone has seen, connected ones first, then the most recently used. The row
+     * names the brand ([Brands]) and what QuickBuds can do with it: everything for the models it speaks to, the
+     * standard Bluetooth features for the rest.
+     */
+    private fun fillYours(s: Usage.Snapshot, connected: Set<String>) {
+        if (isFinishing || isDestroyed) return
+        yours.removeAllViews()
+        val lastUsed = s.spans.groupBy { it.deviceId }.mapValues { (_, v) -> v.maxOf { it.endMs } }
+        val devices = s.devices.sortedWith(compareByDescending<UsageDevice> { it.id in connected }
+            .thenByDescending { lastUsed[it.id] ?: 0L })
+        if (devices.isEmpty()) {
+            yours.addView(TextView(this).apply {
+                setText(R.string.model_yours_empty)
+                setTextColor(ThemeRes.palette(this@ModelActivity).textSecondary)
+                textSize = 13f
+                setPadding(ThemeRes.dp(this@ModelActivity, 4f), 0, 0, 0)
+            })
+            return
+        }
+        val accent = ThemeRes.palette(this).accent
+        for (d in devices) {
+            val supported = d.model != null && ModelCatalog.all(this).any { it.name == d.model }
+            val kind = DeviceKinds.of(d)
+            val state = if (d.id in connected) getString(R.string.conn_on)
+                else lastUsed[d.id]?.let { getString(R.string.model_last_used, UsageFormat.dayShort(this,
+                    java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate())) }
+            val r = SettingRowFactory.build(this, DeviceKinds.icon(kind), 0, 0, SettingRowFactory.buildChevron(this)) {
+                startActivity(android.content.Intent(this, UsageActivity::class.java).putExtra(UsageActivity.EXTRA_DEVICE, d.id))
+            }
+            r.findViewWithTag<TextView>(SettingRowFactory.TITLE_TAG).apply {
+                text = d.label
+                if (d.id in connected) setTextColor(accent)
+            }
+            SettingRowFactory.subtitle(this, r).text = listOfNotNull(
+                DeviceCatalog.brandOf(d.name, d.model)?.name, DeviceKinds.label(kind)?.let { getString(it) }, state,
+                getString(DeviceKinds.features(kind, supported))
+            ).joinToString(" · ")
+            SettingRowFactory.addSplit(yours, r)
+        }
     }
 
     /** Accent label and the sliding outline on the manual model's row (Automatic when none). */

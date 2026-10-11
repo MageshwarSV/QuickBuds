@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Over-ear headphones: an arched headband and two ear cups. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <!-- The headband: a thick arch. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 2.5 14 L 2.5 12 C 2.5 6.5 6.8 2.5 12 2.5 C 17.2 2.5 21.5 6.5 21.5 12 L 21.5 14 L 19.3 14 L 19.3 12 C 19.3 7.8 16 4.7 12 4.7 C 8 4.7 4.7 7.8 4.7 12 L 4.7 14 Z" />
+    <!-- The ear cups. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 2 15 C 2 13.6 3.1 12.5 4.5 12.5 L 7.5 12.5 L 7.5 21.5 L 4.5 21.5 C 3.1 21.5 2 20.4 2 19 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 22 15 C 22 13.6 20.9 12.5 19.5 12.5 L 16.5 12.5 L 16.5 21.5 L 19.5 21.5 C 20.9 21.5 22 20.4 22 19 Z" />
+</vector>

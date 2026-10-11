@@ -58,6 +58,11 @@ class HomeLayoutActivity : Activity() {
         // The fixed tiles, as the main screen shows them now, but inert.
         val state = WidgetStateStore.read(this)
         findViewById<View>(R.id.batteryCard).background = ThemeRes.group(this)
+        // Edit mode is about the sound settings rows; the usage tile is not one of them.
+        findViewById<View>(R.id.usageCard).visibility = View.GONE
+        findViewById<View>(R.id.devicesCard).visibility = View.GONE
+        findViewById<View>(R.id.deviceDetail).visibility = View.GONE
+        findViewById<View>(R.id.sleepCard).visibility = View.GONE
         findViewById<TextView>(R.id.deviceNameText).typeface = ThemeRes.medium(this)
         findViewById<View>(R.id.deviceNameText).visibility = if (state.connected) View.VISIBLE else View.INVISIBLE
         findViewById<FrameLayout>(R.id.statusSlot).addView(BudsStatusView(this).apply {

@@ -133,9 +133,13 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <include layout="@layout/tile_devices" />
             <include layout="@layout/tile_battery" />
+            <include layout="@layout/tile_device_detail" />
             <include layout="@layout/tile_noise" />
             <include layout="@layout/tile_settings" />
+            <include layout="@layout/tile_usage" />
+            <include layout="@layout/tile_sleep" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

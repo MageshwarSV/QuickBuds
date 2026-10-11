@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bluetooth speaker: a rounded box with a big woofer and a small tweeter cut out of it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M 7 1.5 L 17 1.5 C 18.4 1.5 19.5 2.6 19.5 4 L 19.5 20 C 19.5 21.4 18.4 22.5 17 22.5 L 7 22.5 C 5.6 22.5 4.5 21.4 4.5 20 L 4.5 4 C 4.5 2.6 5.6 1.5 7 1.5 Z M 12 10.5 C 9.5 10.5 7.5 12.5 7.5 15 C 7.5 17.5 9.5 19.5 12 19.5 C 14.5 19.5 16.5 17.5 16.5 15 C 16.5 12.5 14.5 10.5 12 10.5 Z M 12 4 C 10.9 4 10 4.9 10 6 C 10 7.1 10.9 8 12 8 C 13.1 8 14 7.1 14 6 C 14 4.9 13.1 4 12 4 Z" />
+    <!-- The woofer's centre. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 10.5 15 C 10.5 14.2 11.2 13.5 12 13.5 C 12.8 13.5 13.5 14.2 13.5 15 C 13.5 15.8 12.8 16.5 12 16.5 C 11.2 16.5 10.5 15.8 10.5 15 Z" />
+</vector>

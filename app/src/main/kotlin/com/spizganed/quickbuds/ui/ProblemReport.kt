@@ -66,10 +66,14 @@ object ProblemReport {
 
     private val MAC = Regex("(?i)\\b([0-9a-f]{2}[:-]){5}[0-9a-f]{2}\\b")
 
+    private fun canConnect(c: Context) = android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S ||
+        c.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
     /** This phone's own names: the device name and the Bluetooth name (null without the permission). */
+    @android.annotation.SuppressLint("MissingPermission")
     private fun phoneNames(c: Context): List<String> = listOfNotNull(
         runCatching { Settings.Global.getString(c.contentResolver, Settings.Global.DEVICE_NAME) }.getOrNull(),
-        runCatching { c.getSystemService(BluetoothManager::class.java)?.adapter?.name }.getOrNull()
+        runCatching { if (canConnect(c)) c.getSystemService(BluetoothManager::class.java)?.adapter?.name else null }.getOrNull()
     ).filter { it.length >= 3 }.distinct()
 
     /**

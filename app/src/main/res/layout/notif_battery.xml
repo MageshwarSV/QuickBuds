@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Battery card, collapsed (BatteryCard): the buds' name, then a small ring and level for left, case, right (the parts shown). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp">
+
+    <TextView
+        android:id="@+id/b_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:textAppearance="@android:style/TextAppearance.Material.Notification.Title" />
+
+    <LinearLayout android:id="@+id/b_l" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginStart="10dp">
+        <ImageView android:id="@+id/b_l_ring" android:layout_width="30dp" android:layout_height="30dp"
+            android:importantForAccessibility="no" />
+        <TextView android:id="@+id/b_l_pct" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:textAppearance="@android:style/TextAppearance.Material.Notification.Info" />
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/b_c" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginStart="10dp">
+        <ImageView android:id="@+id/b_c_ring" android:layout_width="30dp" android:layout_height="30dp"
+            android:importantForAccessibility="no" />
+        <TextView android:id="@+id/b_c_pct" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:textAppearance="@android:style/TextAppearance.Material.Notification.Info" />
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/b_r" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginStart="10dp">
+        <ImageView android:id="@+id/b_r_ring" android:layout_width="30dp" android:layout_height="30dp"
+            android:importantForAccessibility="no" />
+        <TextView android:id="@+id/b_r_pct" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:textAppearance="@android:style/TextAppearance.Material.Notification.Info" />
+    </LinearLayout>
+</LinearLayout>

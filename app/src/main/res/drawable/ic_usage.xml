@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Usage statistics. Three bars over a baseline, a bar chart. On the same 21-cell grid as ic_equalizer
+  (24/21 units a cell), so the dot style lands every edge between dots: bars 3 cells wide, 3 apart, tops
+  at cells 11, 4, 8, bottoms at 18; the baseline is cells 19-20, the full width.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 3.429 12.571 L 6.857 12.571 L 6.857 20.571 L 3.429 20.571 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 10.286 4.571 L 13.714 4.571 L 13.714 20.571 L 10.286 20.571 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 17.143 9.143 L 20.571 9.143 L 20.571 20.571 L 17.143 20.571 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 1.143 21.714 L 22.857 21.714 L 22.857 22.857 L 1.143 22.857 Z" />
+</vector>

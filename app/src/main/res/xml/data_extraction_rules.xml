@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12 and newer. Usage statistics (usage.db) never go to the cloud. A phone-to-phone transfer
+  (cable or local Wi-Fi) still carries them to the user's new phone.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="database" path="usage.db" />
+        <exclude domain="database" path="usage.db-wal" />
+        <exclude domain="database" path="usage.db-shm" />
+        <exclude domain="database" path="usage.db-journal" />
+    </cloud-backup>
+</data-extraction-rules>

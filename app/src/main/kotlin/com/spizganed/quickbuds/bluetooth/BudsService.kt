@@ -1,13 +1,20 @@
 package com.spizganed.quickbuds.bluetooth
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.os.Binder
 import android.os.Build
@@ -17,10 +24,17 @@ import android.os.Looper
 import android.util.Log
 import android.view.KeyEvent
 import com.spizganed.quickbuds.R
+import com.spizganed.quickbuds.notify.BatteryCard
+import com.spizganed.quickbuds.notify.LowBatteryAlert
 import com.spizganed.quickbuds.protocol.AncModes
 import com.spizganed.quickbuds.protocol.OpoProtocol
+import com.spizganed.quickbuds.proximity.CaseReminderMonitor
+import com.spizganed.quickbuds.proximity.DropReason
+import com.spizganed.quickbuds.proximity.LossNotifier
+import com.spizganed.quickbuds.proximity.ProximityMonitor
 import com.spizganed.quickbuds.ui.OnCallGesture
 import com.spizganed.quickbuds.ui.ThemeRes
+import com.spizganed.quickbuds.usage.Usage
 import com.spizganed.quickbuds.widget.AncWidgetProvider
 import com.spizganed.quickbuds.widget.WidgetSettings
 import com.spizganed.quickbuds.widget.WidgetStateStore
@@ -49,21 +63,174 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         fun getService(): BudsService = this@BudsService
     }
 
+    /** Loss protection rides this service's link ([ProximityMonitor]). */
+    private var proximity: ProximityMonitor? = null
+    /** "Only one earbud is in the case", from the wear reports ([CaseReminderMonitor]). */
+    private var caseReminder: CaseReminderMonitor? = null
+    /** Earbuds of any other brand: loss warning, battery card and alerts over standard Bluetooth. */
+    private var other: OtherEarbudsMonitor? = null
+    /** Auto-answer: a ringing call answered after the delay while the earbuds are connected. */
+    private var autoAnswer: com.spizganed.quickbuds.calls.AutoAnswerMonitor? = null
+
+    /**
+     * Connects and disconnects of any headphones, heard here too while the service runs. Some phones hold the
+     * manifest broadcasts back from apps ([KeepAliveReceiver]); a missed disconnect kept a usage session and a
+     * battery card going. Every action here is idempotent, so hearing an event twice changes nothing.
+     */
+    private val linkReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val device = androidx.core.content.IntentCompat.getParcelableExtra(
+                intent, BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java) ?: return
+            val buds = BudsDevice.isBuds(this@BudsService, device)
+            if (!buds && !AudioDevice.isAudio(device)) return
+            when (intent.action) {
+                BluetoothDevice.ACTION_ACL_CONNECTED -> Usage.connected(this@BudsService, device, newLink = true)
+                BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
+                    Usage.disconnected(this@BudsService, device.address)
+                    if (!buds) {
+                        val adapterOn = getSystemService(BluetoothManager::class.java)?.adapter?.state == BluetoothAdapter.STATE_ON
+                        other?.onDisconnected(device.address, if (adapterOn) DropReason.LINK_LOST else DropReason.BLUETOOTH_OFF)
+                    }
+                }
+                else -> when (intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1)) {
+                    BluetoothProfile.STATE_CONNECTED ->
+                        if (!buds && OtherEarbudsMonitor.wanted(this@BudsService)) other?.onConnected(device)
+                    BluetoothProfile.STATE_DISCONNECTED ->
+                        if (buds) checkAudioDisconnectedOutside(device.address) else other?.onMaybeGone()
+                }
+            }
+        }
+    }
+
+    /** The battery level a headset reports through standard Bluetooth: for earbuds of other brands. */
+    private val batteryReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val device = androidx.core.content.IntentCompat.getParcelableExtra(
+                intent, BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java) ?: return
+            val level = intent.getIntExtra(AudioDevice.EXTRA_BATTERY_LEVEL, -1)
+            other?.onBattery(device, level)
+        }
+    }
+
+    /** Bluetooth turning off ends every usage session; the ACL broadcasts are not guaranteed then. */
+    private val adapterReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1)
+            if (state == BluetoothAdapter.STATE_TURNING_OFF || state == BluetoothAdapter.STATE_OFF) {
+                statusLog("[SVC] Bluetooth off: usage sessions end")
+                Usage.allDisconnected(this@BudsService)
+                other?.onAllDisconnected(DropReason.BLUETOOTH_OFF)
+            }
+        }
+    }
+
+    private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        when (key) {
+            ProximityMonitor.KEY_ENABLED, ProximityMonitor.KEY_SENSITIVITY, PREF_BACKGROUND -> {
+                autoAnswer?.update()
+                proximity?.onSettingsChanged()
+                other?.onSettingsChanged()
+                discoverOther()
+            }
+            CaseReminderMonitor.KEY_ENABLED -> caseReminder?.onSettingsChanged()
+            com.spizganed.quickbuds.calls.AutoAnswer.KEY_ENABLED, com.spizganed.quickbuds.calls.AutoAnswer.KEY_DELAY -> autoAnswer?.update()
+            BatteryCard.KEY_ENABLED -> { BatteryCard.update(this); other?.onSettingsChanged(); discoverOther() }
+            LowBatteryAlert.KEY_ENABLED -> {
+                if (!LowBatteryAlert.enabled(this)) LowBatteryAlert.turnedOff(this)
+                discoverOther()
+            }
+            Usage.KEY_ENABLED -> if (Usage.enabled(this)) usageHeartbeat()
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         statusLog("[SVC] onCreate")
+        // Alarms do not survive a reboot or an update: a sleep timer still due is set again.
+        com.spizganed.quickbuds.sleep.SleepTimer.rearm(this)
+        // A new service has no link yet: a battery card left by a killed process is stale (and fixed, so the user
+        // could not clear it). The store says so too, so nothing posts it again until the buds report.
+        WidgetStateStore.read(this).takeIf { it.connected }?.let { WidgetStateStore.write(this, it.copy(connected = false)) }
+        BatteryCard.hide(this)
+        BatteryCard.hideAllOther(this)
 
         manager = BudsConnectionManager(this).also { it.addListener(this) }
+        proximity = ProximityMonitor(this).also { it.connected = { manager?.isConnected() == true } }
+        caseReminder = CaseReminderMonitor(this)
+        other = OtherEarbudsMonitor(this).also { it.supportedBudsConnected = { manager?.isConnected() == true } }
+        autoAnswer = com.spizganed.quickbuds.calls.AutoAnswerMonitor(this).also { it.update() }
 
-        val filter = IntentFilter(ACTION_WIDGET_COMMAND)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(widgetCommandReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            @Suppress("UnspecifiedRegisterReceiverFlag")
-            registerReceiver(widgetCommandReceiver, filter)
+        // Not exported on every Android version: before 13 a plain registration let any app send widget commands
+        // (noise control, game mode) to the buds. androidx guards older versions with a signature permission.
+        androidx.core.content.ContextCompat.registerReceiver(this, widgetCommandReceiver,
+            IntentFilter(ACTION_WIDGET_COMMAND), androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED)
+        // A protected system broadcast: exported or not changes nothing, so the plain call.
+        registerReceiver(adapterReceiver, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED))
+        // Sent by the system (protected), so exported or not changes nothing; the flag only quiets the check.
+        val battery = IntentFilter(AudioDevice.ACTION_BATTERY_LEVEL_CHANGED)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) registerReceiver(batteryReceiver, battery, Context.RECEIVER_EXPORTED)
+        else @Suppress("UnspecifiedRegisterReceiverFlag") registerReceiver(batteryReceiver, battery)
+        val links = IntentFilter().apply {
+            addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+            addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+            addAction("android.bluetooth.a2dp.profile.action.CONNECTION_STATE_CHANGED")
+            addAction("android.bluetooth.headset.profile.action.CONNECTION_STATE_CHANGED")
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) registerReceiver(linkReceiver, links, Context.RECEIVER_EXPORTED)
+        else @Suppress("UnspecifiedRegisterReceiverFlag") registerReceiver(linkReceiver, links)
+        // Other earbuds already connected when the process started get no broadcast: look for them.
+        handler.postDelayed({ if (OtherEarbudsMonitor.wanted(this)) other?.discover() }, OTHER_DISCOVER_DELAY_MS)
+        getSharedPreferences(ThemeRes.PREFS_NAME, MODE_PRIVATE).registerOnSharedPreferenceChangeListener(prefsListener)
 
         startForegroundService()
+        // Once the link had time to come up: end sessions whose disconnect this process never saw.
+        handler.postDelayed({ reconcileUsage() }, RECONCILE_DELAY_MS)
+    }
+
+    /**
+     * The phone's audio to our buds went down, from outside the app (Android's Bluetooth settings, the quick panel).
+     * Our RFCOMM link alone keeps the buds half connected: still "connected" here, so the battery card stayed and
+     * the usage session ran on. When Bluetooth lists no audio to them a moment later, that was the user's disconnect:
+     * our link closes too, and with it the session, the card and the loss warning.
+     */
+    private fun checkAudioDisconnectedOutside(address: String) {
+        handler.postDelayed({
+            if (manager?.isConnected() != true || manager?.device?.address != address) return@postDelayed
+            ConnectedAudio.query(this) { connected ->
+                if (!OutsideDisconnect.shouldClose(manager?.isConnected() == true, manager?.device?.address, address,
+                        connected?.keys)) return@query
+                statusLog("[SVC] Phone audio disconnected outside the app: closing our link too")
+                manager?.disconnect()
+                Usage.disconnected(this, address)
+            }
+        }, AUDIO_GONE_CHECK_MS)
+    }
+
+    /**
+     * A feature for other devices was turned on: pick up the ones already connected. Was: only a device that
+     * connected after the change was seen.
+     */
+    private fun discoverOther() {
+        if (OtherEarbudsMonitor.wanted(this)) other?.discover()
+    }
+
+    /** A sign of life from the connected buds: keeps their usage session's last-seen time fresh. */
+    private fun usageHeartbeat() {
+        if (manager?.isConnected() != true) return
+        manager?.device?.let { Usage.connected(this, it) }
+    }
+
+    /**
+     * Closes usage sessions left open by a process that died without seeing the disconnect. Connected =
+     * our link's buds, or any device with phone audio (A2DP or headset) up.
+     */
+    private fun reconcileUsage() {
+        ConnectedAudio.query(this) { connected ->
+            if (connected == null) return@query Usage.reconcile(this, null)
+            val found = connected.keys.toMutableSet()
+            manager?.takeIf { it.isConnected() }?.device?.let { found += it.address }
+            Usage.reconcile(this, found)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -135,6 +302,38 @@ class BudsService : Service(), BudsConnectionManager.Listener {
                 val on = intent.getBooleanExtra(EXTRA_FIND_ON, false)
                 statusLog("<< FIND_BUDS: $on")
                 manager?.setFindTone(on)
+            }
+            // Notification buttons and swipes: the loss card's find tone and dismiss, the battery card's swipe.
+            LossNotifier.ACTION_FIND -> {
+                val on = intent.getBooleanExtra(LossNotifier.EXTRA_ON, false)
+                statusLog("<< LOSS FIND: $on")
+                manager?.setFindTone(on)
+                if (!intent.getBooleanExtra(LossNotifier.EXTRA_SILENT, false)) LossNotifier.setRinging(this, on)
+            }
+            LossNotifier.ACTION_DISMISS -> {
+                val id = intent.getIntExtra(LossNotifier.EXTRA_ID, -1)
+                LossNotifier.dismiss(this, id)
+                if (id == LossNotifier.idFor(null)) proximity?.onWarningDismissed()
+                else if (LossNotifier.isOtherLossId(id)) other?.onWarningDismissed(id)
+            }
+            BatteryCard.ACTION_DISMISSED -> {
+                // Fixed while the buds are connected and out: a swiped card is posted again straight away.
+                val address = intent.getStringExtra(BatteryCard.EXTRA_ADDRESS)
+                BatteryCard.onDismissed(address)
+                // Again at once, but only while it is true: the buds' link up, or that device still tracked.
+                if (address == null) { if (manager?.isConnected() == true) BatteryCard.update(this) else BatteryCard.hide(this) }
+                else other?.onSettingsChanged()
+            }
+            ACTION_OTHER_EARBUDS -> {
+                val device = androidx.core.content.IntentCompat.getParcelableExtra(
+                    intent, BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+                if (device != null) {
+                    if (intent.getBooleanExtra(EXTRA_CONNECTED, false)) other?.onConnected(device)
+                    else {
+                        val adapterOn = getSystemService(BluetoothManager::class.java)?.adapter?.state == BluetoothAdapter.STATE_ON
+                        other?.onDisconnected(device.address, if (adapterOn) DropReason.LINK_LOST else DropReason.BLUETOOTH_OFF)
+                    }
+                }
             }
             ACTION_SET_ON_CALL -> {
                 val row = intent.getStringExtra(EXTRA_ON_CALL_ROW)
@@ -245,10 +444,57 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         try { manager?.setBridge(false) } catch (_: Exception) {}
         try { manager?.removeListener(this) } catch (_: Exception) {}
         try { unregisterReceiver(widgetCommandReceiver) } catch (_: Exception) {}
+        try { unregisterReceiver(adapterReceiver) } catch (_: Exception) {}
+        try { unregisterReceiver(batteryReceiver) } catch (_: Exception) {}
+        try { unregisterReceiver(linkReceiver) } catch (_: Exception) {}
+        other?.destroy()
+        autoAnswer?.stop()
+        getSharedPreferences(ThemeRes.PREFS_NAME, MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(prefsListener)
+        proximity?.destroy()
+        caseReminder?.destroy()
+        BatteryCard.hide(this)
+        // No service, no updates: a low-battery card would go stale.
+        LowBatteryAlert.clear(this)
         super.onDestroy()
     }
 
+    override fun onLinkDropped(drop: BudsConnectionManager.Drop) {
+        val adapterOn = getSystemService(BluetoothManager::class.java)?.adapter?.state == BluetoothAdapter.STATE_ON
+        proximity?.onDisconnected(when {
+            !adapterOn -> DropReason.BLUETOOTH_OFF
+            // Disconnected by the sleep timer: the user's choice, not a loss.
+            com.spizganed.quickbuds.sleep.SleepTimer.justDisconnected() -> DropReason.USER
+            drop == BudsConnectionManager.Drop.CASE_CLOSED -> DropReason.CASE_CLOSED
+            drop == BudsConnectionManager.Drop.RESTART -> DropReason.BUDS_RESTART
+            else -> DropReason.LINK_LOST
+        })
+    }
+
+    override fun onCapabilities() {
+        // The product id names the model: the statistics and the battery card show it instead of the Bluetooth name.
+        usageHeartbeat()
+        BatteryCard.update(this)
+    }
+
     override fun onConnected(connected: Boolean) {
+        other?.onSupportedBudsChanged()
+        if (connected) {
+            usageHeartbeat()
+            manager?.device?.let { proximity?.onConnected(it) }
+        } else {
+            // Our own disconnect, or the second half of a drop (onLinkDropped came first): never a warning.
+            proximity?.onDisconnected(DropReason.USER)
+            // Our link can drop while the buds stay connected for audio. If they are gone, their usage session ends
+            // now, even when the disconnect broadcast never reaches us.
+            manager?.device?.address?.let { address ->
+                handler.postDelayed({
+                    ConnectedAudio.query(this) { c ->
+                        if (c != null && address !in c && manager?.isConnected() != true) Usage.disconnected(this, address)
+                    }
+                }, LINK_CHECK_DELAY_MS)
+            }
+            caseReminder?.onDisconnected()
+        }
         val st = WidgetStateStore.read(this)
         st.connected = connected
         if (connected) {
@@ -272,6 +518,7 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         }
         WidgetStateStore.write(this, st)
         AncWidgetProvider.refreshAll(this)
+        BatteryCard.update(this, st)
     }
 
     override fun onBattery(
@@ -291,9 +538,18 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         if (right != null || clear) st.rightBattery = right ?: -1
         WidgetStateStore.write(this, st)
         AncWidgetProvider.refreshAll(this)
+        usageHeartbeat()
+        BatteryCard.leftCharging = chargingLeft
+        BatteryCard.rightCharging = chargingRight
+        BatteryCard.caseCharging = chargingCase
+        BatteryCard.update(this, st)
+        LowBatteryAlert.onBattery(this, left, case, right, chargingLeft, chargingCase, chargingRight)
     }
 
     override fun onWearState(left: Int, right: Int, caseSt: Int) {
+        proximity?.onWear(left, right)
+        caseReminder?.onWear(left, right)
+        usageHeartbeat()
         val st = WidgetStateStore.read(this)
         val wasWorn = isWorn(st.leftStatus) || isWorn(st.rightStatus)
         var changed = false
@@ -312,6 +568,7 @@ class BudsService : Service(), BudsConnectionManager.Listener {
             WidgetStateStore.write(this, st)
             AncWidgetProvider.refreshAll(this)
         }
+        BatteryCard.update(this, st)
         if (wasWorn && !isWorn(st.leftStatus) && !isWorn(st.rightStatus)) smartPause()
     }
 
@@ -405,6 +662,18 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         const val ACTION_SET_ON_CALL = "com.spizganed.quickbuds.SET_ON_CALL"
         const val ACTION_FIND_BUDS = "com.spizganed.quickbuds.FIND_BUDS"
         const val PREF_SMART_PAUSE = "smart_auto_pause"
+
+        /** Earbuds of other brands: connected / disconnected ([OtherEarbudsMonitor]), the device in EXTRA_DEVICE. */
+        const val ACTION_OTHER_EARBUDS = "com.spizganed.quickbuds.OTHER_EARBUDS"
+        const val EXTRA_CONNECTED = "connected"
+        private const val OTHER_DISCOVER_DELAY_MS = 3_000L
+        /** After the phone's audio to our buds went down: time for both profiles to settle before checking. */
+        private const val AUDIO_GONE_CHECK_MS = 3_000L
+        /** After our link drops: time for the system to settle before asking what is still connected. */
+        private const val LINK_CHECK_DELAY_MS = 5_000L
+
+        /** After the service starts, usage sessions are checked against what is connected ([reconcileUsage]). */
+        private const val RECONCILE_DELAY_MS = 15_000L
 
         /** Delay for a FORCE_CONNECT, in ms (the ACL fallback in KeepAliveReceiver). */
         const val EXTRA_DELAY_MS = "delay_ms"

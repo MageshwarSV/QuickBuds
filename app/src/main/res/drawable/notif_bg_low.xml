@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Low battery card: dark amber, a "charge it" nudge. White text on it in every theme. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient android:angle="0" android:startColor="#FFB45309" android:endColor="#FFD97706" />
+    <corners android:radius="16dp" />
+</shape>

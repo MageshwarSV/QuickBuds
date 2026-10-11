@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 11 and older. Usage statistics (usage.db: connection times, Bluetooth addresses) never leave the
+  phone, so they stay out of backups. Everything else is backed up as before.
+-->
+<full-backup-content>
+    <exclude domain="database" path="usage.db" />
+    <exclude domain="database" path="usage.db-wal" />
+    <exclude domain="database" path="usage.db-shm" />
+    <exclude domain="database" path="usage.db-journal" />
+</full-backup-content>

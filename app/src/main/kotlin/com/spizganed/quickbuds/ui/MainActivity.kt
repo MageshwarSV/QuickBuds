@@ -28,11 +28,17 @@ import com.spizganed.quickbuds.R
 import com.spizganed.quickbuds.bluetooth.BudsConnectionManager
 import com.spizganed.quickbuds.bluetooth.BudsDevice
 import com.spizganed.quickbuds.bluetooth.BudsService
+import com.spizganed.quickbuds.bluetooth.ConnectedDevices
+import com.spizganed.quickbuds.bluetooth.DeviceCatalog
+import com.spizganed.quickbuds.bluetooth.FastPairBattery
 import com.spizganed.quickbuds.bluetooth.PacketLogger
+import com.spizganed.quickbuds.notify.BatteryCard
 import com.spizganed.quickbuds.protocol.AncModes
 import com.spizganed.quickbuds.protocol.ModelCatalog
 import com.spizganed.quickbuds.protocol.Capabilities
 import com.spizganed.quickbuds.protocol.OpoProtocol
+import com.spizganed.quickbuds.usage.Usage
+import com.spizganed.quickbuds.usage.UsageStats
 import com.spizganed.quickbuds.widget.AncWidgetProvider
 import com.spizganed.quickbuds.widget.WidgetSettings
 import com.spizganed.quickbuds.widget.WidgetStateStore
@@ -107,6 +113,23 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
 
     /** The noise control tile. */
     private lateinit var ancRow: LinearLayout
+
+    /** Home tile: today's usage, opens the statistics ([UsageActivity]). Live while disconnected: the data is local. */
+    private lateinit var usageCard: LinearLayout
+    private var usageSubtitle: TextView? = null
+
+    /** The device switcher and the selected device's options ([DevicesTile]). Live while the buds are disconnected. */
+    private lateinit var devicesCard: LinearLayout
+    private lateinit var deviceDetail: LinearLayout
+    private lateinit var devicesTile: DevicesTile
+
+    /** False while a device of another brand is selected: the buds' tiles make way for its options. */
+    private var budsControls = true
+    private val usageChanged: () -> Unit = { renderUsageTile() }
+
+    /** Home tile: the sleep timer ([SleepTimerActivity]): off, or when it stops the audio. */
+    private lateinit var sleepCard: LinearLayout
+    private var sleepSubtitle: TextView? = null
 
     /**
      * Renders the header connection pill: dot icon, dot colour, label text.
@@ -201,7 +224,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
         val alpha = if (connected) 1f else DISABLED_ALPHA
         for (i in 0 until tiles.childCount) {
             val tile = tiles.getChildAt(i)
-            if (tile === batteryCard) continue
+            if (tile === batteryCard || tile === usageCard || tile === devicesCard || tile === deviceDetail || tile === sleepCard) continue
             setEnabledDeep(tile, connected)
             if (first || animatorScale() == 0f) tile.alpha = alpha
             else tile.animate().alpha(alpha).setDuration(CARD_ANIM_MS).start()
@@ -257,6 +280,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
         renderBattery(state)
         renderAnc(state.ancMode)
         renderWear(state)
+        devicesTile.setBuds(budsEntry(state))
         gameSwitch?.let { sw ->
             if (state.connected && sw.isChecked != state.gameMode) {
                 sw.isChecked = state.gameMode
@@ -332,6 +356,15 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
         tiles = findViewById<LinearLayout>(R.id.tiles)
         batteryCard = findViewById<LinearLayout>(R.id.batteryCard)
         ancRow = findViewById<LinearLayout>(R.id.ancRow)
+        usageCard = findViewById<LinearLayout>(R.id.usageCard)
+        devicesCard = findViewById<LinearLayout>(R.id.devicesCard)
+        deviceDetail = findViewById<LinearLayout>(R.id.deviceDetail)
+        devicesTile = DevicesTile(this, devicesCard, deviceDetail) { buds ->
+            if (budsControls != buds) { budsControls = buds; showBudsTiles() }
+        }
+        buildUsageTile()
+        sleepCard = findViewById<LinearLayout>(R.id.sleepCard)
+        buildSleepTile()
 
         connPill = findViewById<LinearLayout>(R.id.connPill)
         // No ripple: the pill sinks a little under the finger and springs back, like a real button.
@@ -367,6 +400,8 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
         renderAnc(initial.ancMode)
         renderWear(initial)
         WidgetStateStore.addListener(storeListener)
+        devicesTile.setBuds(budsEntry(initial))
+        devicesTile.start()
 
         checkPermissions()
         UpdateChecker.maybeAutoCheck(this)
@@ -513,6 +548,8 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
 
     override fun onDestroy() {
         WidgetStateStore.removeListener(storeListener)
+        Usage.removeListener(usageChanged)
+        devicesTile.stop()
         unbind()
         super.onDestroy()
     }
@@ -562,6 +599,52 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
         // Settings › Developer › Dev tools button (default on).
         btnDevTools.visibility = if (getSharedPreferences(ThemeRes.PREFS_NAME, MODE_PRIVATE)
                 .getBoolean(SettingsActivity.KEY_DEV_TOOLS_BUTTON, true)) View.VISIBLE else View.GONE
+        renderUsageTile()
+        renderSleepTile()
+    }
+
+    // ==================== Usage tile ====================
+
+    private fun buildSleepTile() {
+        sleepCard.background = ThemeRes.group(this)
+        sleepCard.clipToOutline = true
+        val row = SettingRowFactory.build(
+            this, R.drawable.ic_sleep, R.string.sleep_title, 0, SettingRowFactory.buildChevron(this)
+        ) { startActivity(Intent(this, SleepTimerActivity::class.java)) }
+        sleepSubtitle = SettingRowFactory.subtitle(this, row)
+        sleepCard.addView(row)
+    }
+
+    /** "Stops audio at 11:30 PM" while it runs, else what it does. */
+    private fun renderSleepTile() {
+        com.spizganed.quickbuds.sleep.SleepTimer.rearm(this)
+        val at = com.spizganed.quickbuds.sleep.SleepTimer.at(this)
+        sleepSubtitle?.text = if (at == null) getString(R.string.sleep_tile_off)
+            else getString(R.string.sleep_active, android.text.format.DateFormat.getTimeFormat(this).format(java.util.Date(at)))
+    }
+
+    private fun buildUsageTile() {
+        usageCard.background = ThemeRes.group(this)
+        usageCard.clipToOutline = true
+        val row = SettingRowFactory.build(
+            this, R.drawable.ic_usage, R.string.usage_title, 0, SettingRowFactory.buildChevron(this)
+        ) { startActivity(Intent(this, UsageActivity::class.java)) }
+        usageSubtitle = SettingRowFactory.subtitle(this, row)
+        usageCard.addView(row)
+        Usage.addListener(usageChanged)
+    }
+
+    /** "Today: 3h 42m", all devices; hidden with usage tracking off. */
+    private fun renderUsageTile() {
+        usageCard.visibility = if (Usage.enabled(this)) View.VISIBLE else View.GONE
+        if (!Usage.enabled(this)) return
+        Usage.load(this) { s ->
+            if (isFinishing || isDestroyed) return@load
+            val zone = java.time.ZoneId.systemDefault()
+            val today = java.time.Instant.ofEpochMilli(s.nowMs).atZone(zone).toLocalDate()
+            val ms = UsageStats.byDay(s.spans, s.summaries, zone)[today]?.totalMs ?: 0L
+            usageSubtitle?.text = getString(R.string.usage_tile_today, UsageFormat.duration(this, ms))
+        }
     }
 
     // ==================== Theme ====================
@@ -1141,10 +1224,25 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
             (row.parent as? android.view.ViewGroup)?.removeView(row)
             if (key !in hidden && rowSupported(key)) SettingRowFactory.addRow(featureList, row)
         }
-        featureList.visibility = if (featureList.childCount == 0) View.GONE else View.VISIBLE
-        ancRow.visibility = if (Capabilities.supports(this, OpoProtocol.CMD_SET_ANC) && !AncModes.of(this).isEmpty)
-            View.VISIBLE else View.GONE
+        showBudsTiles()
         setEnabledDeep(featureList, connectedUi != false)
+    }
+
+    /** The buds' battery, noise control and settings rows: hidden while another device is selected ([DevicesTile]). */
+    private fun showBudsTiles() {
+        batteryCard.visibility = if (budsControls) View.VISIBLE else View.GONE
+        featureList.visibility = if (!budsControls || featureList.childCount == 0) View.GONE else View.VISIBLE
+        ancRow.visibility = if (budsControls && Capabilities.supports(this, OpoProtocol.CMD_SET_ANC) &&
+            !AncModes.of(this).isEmpty) View.VISIBLE else View.GONE
+    }
+
+    /** The buds for the device switcher, while their link is up. */
+    private fun budsEntry(state: WidgetStateStore.State): ConnectedDevices.Entry? {
+        if (!state.connected) return null
+        val address = BudsDevice.find(this)?.address ?: return null
+        return ConnectedDevices.Entry(address, deviceNameText.text.toString(), DeviceCatalog.Kind.TWS, -1,
+            FastPairBattery.Levels(state.leftBattery, state.rightBattery, state.caseBattery,
+                BatteryCard.leftCharging, BatteryCard.rightCharging, BatteryCard.caseCharging))
     }
 
     // ==================== Permissions / connection ====================
