@@ -210,12 +210,13 @@
     <string name="update_permission_title">Allow installing updates</string>
     <string name="update_permission_body">Android needs your permission to install updates from QuickBuds.</string>
     <string name="update_permission_action">Open settings</string>
-    <string name="update_auto_title">Check on start</string>
-    <string name="update_auto_sub">Look for a new version when the app opens</string>
+    <string name="update_auto_title">Check for updates</string>
+    <string name="update_auto_sub">Look for new versions and notify you</string>
     <string name="update_found_title">QuickBuds %1$s is available</string>
     <string name="update_found_body">You have %1$s. Open the update screen to see what\'s new.</string>
     <string name="update_found_view">View</string>
-    <string name="update_later">Later</string>
+    <string name="update_channel">App updates</string>
+    <string name="update_ignore">Ignore</string>
 
     <!-- ==================== Earbud gestures (gesture config) ==================== -->
 

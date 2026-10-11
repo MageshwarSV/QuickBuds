@@ -178,12 +178,13 @@
     <string name="update_permission_title">Дозвольте встановлення оновлень</string>
     <string name="update_permission_body">Android потрібен ваш дозвіл, щоб встановлювати оновлення з QuickBuds.</string>
     <string name="update_permission_action">Відкрити налаштування</string>
-    <string name="update_auto_title">Перевіряти під час запуску</string>
-    <string name="update_auto_sub">Шукати нову версію під час відкриття застосунку</string>
+    <string name="update_auto_title">Перевіряти оновлення</string>
+    <string name="update_auto_sub">Шукати нові версії та сповіщати вас</string>
     <string name="update_found_title">Доступна QuickBuds %1$s</string>
     <string name="update_found_body">У вас версія %1$s. Відкрийте екран оновлення, щоб дізнатися, що нового.</string>
     <string name="update_found_view">Переглянути</string>
-    <string name="update_later">Пізніше</string>
+    <string name="update_channel">Оновлення застосунку</string>
+    <string name="update_ignore">Ігнорувати</string>
     <string name="row_gesture_title">Жести навушників</string>
     <string name="row_gesture_sub">Призначення дотиків і свайпів</string>
     <string name="gesture_title">Жести навушників</string>

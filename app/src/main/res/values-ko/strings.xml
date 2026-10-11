@@ -178,12 +178,13 @@
     <string name="update_permission_title">업데이트 설치 허용</string>
     <string name="update_permission_body">QuickBuds에서 업데이트를 설치하려면 Android 권한이 필요합니다.</string>
     <string name="update_permission_action">설정 열기</string>
-    <string name="update_auto_title">시작할 때 확인</string>
-    <string name="update_auto_sub">앱을 열 때 새 버전 찾기</string>
+    <string name="update_auto_title">업데이트 확인</string>
+    <string name="update_auto_sub">새 버전을 확인하고 알려 드립니다</string>
     <string name="update_found_title">QuickBuds %1$s 사용 가능</string>
     <string name="update_found_body">현재 버전은 %1$s입니다. 업데이트 화면을 열어 새로운 기능을 확인하세요.</string>
     <string name="update_found_view">보기</string>
-    <string name="update_later">나중에</string>
+    <string name="update_channel">앱 업데이트</string>
+    <string name="update_ignore">무시</string>
     <string name="row_gesture_title">이어버드 제스처</string>
     <string name="row_gesture_sub">탭과 슬라이드 지정</string>
     <string name="gesture_title">이어버드 제스처</string>

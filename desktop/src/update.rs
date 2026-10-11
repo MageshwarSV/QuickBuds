@@ -7,8 +7,8 @@ use serde_json::Value;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-const API: &str = "https://api.github.com/repos/spizganed/QuickBuds/releases?per_page=30";
-pub const PAGE: &str = "https://github.com/spizganed/QuickBuds/releases/latest";
+const API: &str = "https://api.github.com/repos/MageshwarSV/QuickBuds/releases?per_page=30";
+pub const PAGE: &str = "https://github.com/MageshwarSV/QuickBuds/releases/latest";
 const ASSET: &str = if cfg!(windows) { "-windows-x64.zip" } else { "-linux-x64.tar.gz" };
 
 pub struct Release { pub version: String, pub url: String }

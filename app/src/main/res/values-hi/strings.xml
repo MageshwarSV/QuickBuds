@@ -178,12 +178,13 @@
     <string name="update_permission_title">अपडेट इंस्टॉल करने की अनुमति दें</string>
     <string name="update_permission_body">QuickBuds से अपडेट इंस्टॉल करने के लिए Android को आपकी अनुमति चाहिए।</string>
     <string name="update_permission_action">सेटिंग्स खोलें</string>
-    <string name="update_auto_title">शुरू होने पर जांचें</string>
-    <string name="update_auto_sub">ऐप खुलने पर नया संस्करण देखें</string>
+    <string name="update_auto_title">अपडेट जाँचें</string>
+    <string name="update_auto_sub">नए संस्करण खोजें और आपको सूचित करें</string>
     <string name="update_found_title">QuickBuds %1$s उपलब्ध है</string>
     <string name="update_found_body">आपके पास %1$s है। नया क्या है यह देखने के लिए अपडेट स्क्रीन खोलें।</string>
     <string name="update_found_view">देखें</string>
-    <string name="update_later">बाद में</string>
+    <string name="update_channel">ऐप अपडेट</string>
+    <string name="update_ignore">अनदेखा करें</string>
     <string name="row_gesture_title">ईयरबड जेस्चर</string>
     <string name="row_gesture_sub">टैप और स्लाइड सेट करें</string>
     <string name="gesture_title">ईयरबड जेस्चर</string>

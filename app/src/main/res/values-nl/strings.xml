@@ -178,12 +178,13 @@
     <string name="update_permission_title">Installeren van updates toestaan</string>
     <string name="update_permission_body">Android heeft je toestemming nodig om updates vanuit QuickBuds te installeren.</string>
     <string name="update_permission_action">Instellingen openen</string>
-    <string name="update_auto_title">Controleren bij starten</string>
-    <string name="update_auto_sub">Naar een nieuwe versie zoeken als de app opent</string>
+    <string name="update_auto_title">Controleren op updates</string>
+    <string name="update_auto_sub">Zoek naar nieuwe versies en stuur een melding</string>
     <string name="update_found_title">QuickBuds %1$s is beschikbaar</string>
     <string name="update_found_body">Je hebt %1$s. Open het updatescherm om te zien wat er nieuw is.</string>
     <string name="update_found_view">Bekijken</string>
-    <string name="update_later">Later</string>
+    <string name="update_channel">App-updates</string>
+    <string name="update_ignore">Negeren</string>
     <string name="row_gesture_title">Oordopjesgebaren</string>
     <string name="row_gesture_sub">Tikken en vegen toewijzen</string>
     <string name="gesture_title">Oordopjesgebaren</string>

@@ -178,12 +178,13 @@
     <string name="update_permission_title">Povolit instalaci aktualizací</string>
     <string name="update_permission_body">Android potřebuje vaše svolení k instalaci aktualizací z QuickBuds.</string>
     <string name="update_permission_action">Otevřít nastavení</string>
-    <string name="update_auto_title">Kontrolovat při spuštění</string>
-    <string name="update_auto_sub">Hledat novou verzi při otevření aplikace</string>
+    <string name="update_auto_title">Kontrolovat aktualizace</string>
+    <string name="update_auto_sub">Hledat nové verze a upozornit vás</string>
     <string name="update_found_title">Je k dispozici QuickBuds %1$s</string>
     <string name="update_found_body">Máte verzi %1$s. Otevřete obrazovku aktualizace a podívejte se, co je nového.</string>
     <string name="update_found_view">Zobrazit</string>
-    <string name="update_later">Později</string>
+    <string name="update_channel">Aktualizace aplikace</string>
+    <string name="update_ignore">Ignorovat</string>
     <string name="row_gesture_title">Gesta sluchátek</string>
     <string name="row_gesture_sub">Přiřaďte klepnutí a posuny</string>
     <string name="gesture_title">Gesta sluchátek</string>

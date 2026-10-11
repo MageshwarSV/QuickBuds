@@ -50,6 +50,7 @@ class UpdateActivity : Activity() {
         val dp = { v: Float -> ThemeRes.dp(this, v) }
         val root = SettingRowFactory.screen(this)
         root.addView(SettingRowFactory.title(this, R.string.update_title))
+        UpdateChecker.clearNotification(this)
 
         // Installed | Latest, side by side.
         fun column(labelRes: Int, value: String) = LinearLayout(this).apply {

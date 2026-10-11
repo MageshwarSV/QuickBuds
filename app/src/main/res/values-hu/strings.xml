@@ -178,12 +178,13 @@
     <string name="update_permission_title">Frissítések telepítésének engedélyezése</string>
     <string name="update_permission_body">Az Androidnak az Ön engedélyére van szüksége a QuickBuds frissítéseinek telepítéséhez.</string>
     <string name="update_permission_action">Beállítások megnyitása</string>
-    <string name="update_auto_title">Ellenőrzés indításkor</string>
-    <string name="update_auto_sub">Új verzió keresése az alkalmazás megnyitásakor</string>
+    <string name="update_auto_title">Frissítések keresése</string>
+    <string name="update_auto_sub">Új verziók keresése és értesítés</string>
     <string name="update_found_title">Elérhető a QuickBuds %1$s</string>
     <string name="update_found_body">Önnél a(z) %1$s verzió van. Nyissa meg a frissítési képernyőt az újdonságokért.</string>
     <string name="update_found_view">Megtekintés</string>
-    <string name="update_later">Később</string>
+    <string name="update_channel">Alkalmazásfrissítések</string>
+    <string name="update_ignore">Mellőzés</string>
     <string name="row_gesture_title">Fülhallgató-kézmozdulatok</string>
     <string name="row_gesture_sub">Koppintások és csúsztatások hozzárendelése</string>
     <string name="gesture_title">Fülhallgató-kézmozdulatok</string>

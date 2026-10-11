@@ -178,12 +178,13 @@
     <string name="update_permission_title">Consenti l\'installazione degli aggiornamenti</string>
     <string name="update_permission_body">Android ha bisogno del tuo permesso per installare aggiornamenti da QuickBuds.</string>
     <string name="update_permission_action">Apri impostazioni</string>
-    <string name="update_auto_title">Controlla all\'avvio</string>
-    <string name="update_auto_sub">Cerca una nuova versione all\'apertura dell\'app</string>
+    <string name="update_auto_title">Cerca aggiornamenti</string>
+    <string name="update_auto_sub">Cerca nuove versioni e ti avvisa</string>
     <string name="update_found_title">QuickBuds %1$s è disponibile</string>
     <string name="update_found_body">Hai la %1$s. Apri la schermata di aggiornamento per vedere le novità.</string>
     <string name="update_found_view">Vedi</string>
-    <string name="update_later">Più tardi</string>
+    <string name="update_channel">Aggiornamenti dell\'app</string>
+    <string name="update_ignore">Ignora</string>
     <string name="row_gesture_title">Gesti degli auricolari</string>
     <string name="row_gesture_sub">Assegna tocchi e scorrimenti</string>
     <string name="gesture_title">Gesti degli auricolari</string>

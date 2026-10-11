@@ -178,12 +178,13 @@
     <string name="update_permission_title">允许安装更新</string>
     <string name="update_permission_body">Android 需要你的许可才能安装来自 QuickBuds 的更新。</string>
     <string name="update_permission_action">打开设置</string>
-    <string name="update_auto_title">启动时检查</string>
-    <string name="update_auto_sub">打开应用时查找新版本</string>
+    <string name="update_auto_title">检查更新</string>
+    <string name="update_auto_sub">查找新版本并通知你</string>
     <string name="update_found_title">QuickBuds %1$s 可用</string>
     <string name="update_found_body">当前版本为 %1$s。打开更新页面查看新内容。</string>
     <string name="update_found_view">查看</string>
-    <string name="update_later">稍后</string>
+    <string name="update_channel">应用更新</string>
+    <string name="update_ignore">忽略</string>
     <string name="row_gesture_title">耳机手势</string>
     <string name="row_gesture_sub">设置点按和滑动</string>
     <string name="gesture_title">耳机手势</string>

@@ -178,12 +178,13 @@
     <string name="update_permission_title">Güncelleme yüklemeye izin verin</string>
     <string name="update_permission_body">QuickBuds güncellemelerini yüklemek için Android\'in izninize ihtiyacı var.</string>
     <string name="update_permission_action">Ayarları aç</string>
-    <string name="update_auto_title">Açılışta kontrol et</string>
-    <string name="update_auto_sub">Uygulama açıldığında yeni sürüm ara</string>
+    <string name="update_auto_title">Güncellemeleri denetle</string>
+    <string name="update_auto_sub">Yeni sürümleri arar ve sizi bilgilendirir</string>
     <string name="update_found_title">QuickBuds %1$s mevcut</string>
     <string name="update_found_body">Sizdeki sürüm %1$s. Yenilikleri görmek için güncelleme ekranını açın.</string>
     <string name="update_found_view">Görüntüle</string>
-    <string name="update_later">Sonra</string>
+    <string name="update_channel">Uygulama güncellemeleri</string>
+    <string name="update_ignore">Yoksay</string>
     <string name="row_gesture_title">Kulaklık hareketleri</string>
     <string name="row_gesture_sub">Dokunma ve kaydırma atayın</string>
     <string name="gesture_title">Kulaklık hareketleri</string>

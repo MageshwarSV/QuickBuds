@@ -178,12 +178,13 @@
     <string name="update_permission_title">Tillåt installation av uppdateringar</string>
     <string name="update_permission_body">Android behöver ditt tillstånd för att installera uppdateringar från QuickBuds.</string>
     <string name="update_permission_action">Öppna inställningar</string>
-    <string name="update_auto_title">Kontrollera vid start</string>
-    <string name="update_auto_sub">Sök efter en ny version när appen öppnas</string>
+    <string name="update_auto_title">Sök efter uppdateringar</string>
+    <string name="update_auto_sub">Sök efter nya versioner och meddela dig</string>
     <string name="update_found_title">QuickBuds %1$s finns tillgänglig</string>
     <string name="update_found_body">Du har %1$s. Öppna uppdateringsskärmen för att se nyheterna.</string>
     <string name="update_found_view">Visa</string>
-    <string name="update_later">Senare</string>
+    <string name="update_channel">Appuppdateringar</string>
+    <string name="update_ignore">Ignorera</string>
     <string name="row_gesture_title">Hörlursgester</string>
     <string name="row_gesture_sub">Tilldela tryck och svep</string>
     <string name="gesture_title">Hörlursgester</string>

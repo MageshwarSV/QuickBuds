@@ -178,12 +178,13 @@
     <string name="update_permission_title">Installation von Updates erlauben</string>
     <string name="update_permission_body">Android benötigt deine Erlaubnis, um Updates aus QuickBuds zu installieren.</string>
     <string name="update_permission_action">Einstellungen öffnen</string>
-    <string name="update_auto_title">Beim Start prüfen</string>
-    <string name="update_auto_sub">Beim Öffnen der App nach einer neuen Version suchen</string>
+    <string name="update_auto_title">Nach Updates suchen</string>
+    <string name="update_auto_sub">Nach neuen Versionen suchen und dich benachrichtigen</string>
     <string name="update_found_title">QuickBuds %1$s ist verfügbar</string>
     <string name="update_found_body">Du hast %1$s. Öffne die Update-Seite, um die Neuigkeiten zu sehen.</string>
     <string name="update_found_view">Ansehen</string>
-    <string name="update_later">Später</string>
+    <string name="update_channel">App-Updates</string>
+    <string name="update_ignore">Ignorieren</string>
     <string name="row_gesture_title">Earbud-Gesten</string>
     <string name="row_gesture_sub">Tippen und Wischen belegen</string>
     <string name="gesture_title">Earbud-Gesten</string>

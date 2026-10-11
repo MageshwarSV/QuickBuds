@@ -71,6 +71,12 @@ class BudsService : Service(), BudsConnectionManager.Listener {
     private var other: OtherEarbudsMonitor? = null
     /** Auto-answer: a ringing call answered after the delay while the earbuds are connected. */
     private var autoAnswer: com.spizganed.quickbuds.calls.AutoAnswerMonitor? = null
+    private val updateCheck = object : Runnable {
+        override fun run() {
+            com.spizganed.quickbuds.ui.UpdateChecker.backgroundCheck(this@BudsService)
+            handler.postDelayed(this, 60 * 60_000L)
+        }
+    }
 
     /**
      * Connects and disconnects of any headphones, heard here too while the service runs. Some phones hold the
@@ -159,6 +165,8 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         caseReminder = CaseReminderMonitor(this)
         other = OtherEarbudsMonitor(this).also { it.supportedBudsConnected = { manager?.isConnected() == true } }
         autoAnswer = com.spizganed.quickbuds.calls.AutoAnswerMonitor(this).also { it.update() }
+        // A new version on GitHub: a notification, also with the app closed. The check itself waits 12 h between looks.
+        handler.postDelayed(updateCheck, 30_000L)
 
         // Not exported on every Android version: before 13 a plain registration let any app send widget commands
         // (noise control, game mode) to the buds. androidx guards older versions with a signature permission.
@@ -449,6 +457,7 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         try { unregisterReceiver(linkReceiver) } catch (_: Exception) {}
         other?.destroy()
         autoAnswer?.stop()
+        handler.removeCallbacks(updateCheck)
         getSharedPreferences(ThemeRes.PREFS_NAME, MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(prefsListener)
         proximity?.destroy()
         caseReminder?.destroy()

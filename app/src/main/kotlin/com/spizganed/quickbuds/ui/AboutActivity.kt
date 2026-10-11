@@ -106,7 +106,7 @@ class AboutActivity : Activity() {
     }
 
     companion object {
-        const val GITHUB_URL = "https://github.com/spizganed/QuickBuds"
+        const val GITHUB_URL = UpdateChecker.PAGE
         /** Null hides the button (it was hidden until the page existed). */
         val KOFI_URL: String? = "https://ko-fi.com/spizganed"
     }

@@ -178,12 +178,13 @@
     <string name="update_permission_title">Permite instalarea actualizărilor</string>
     <string name="update_permission_body">Android are nevoie de permisiunea ta pentru a instala actualizări din QuickBuds.</string>
     <string name="update_permission_action">Deschide setările</string>
-    <string name="update_auto_title">Verifică la pornire</string>
-    <string name="update_auto_sub">Caută o versiune nouă când se deschide aplicația</string>
+    <string name="update_auto_title">Caută actualizări</string>
+    <string name="update_auto_sub">Caută versiuni noi și te notifică</string>
     <string name="update_found_title">QuickBuds %1$s este disponibil</string>
     <string name="update_found_body">Ai %1$s. Deschide ecranul de actualizare pentru a vedea noutățile.</string>
     <string name="update_found_view">Vezi</string>
-    <string name="update_later">Mai târziu</string>
+    <string name="update_channel">Actualizări aplicație</string>
+    <string name="update_ignore">Ignoră</string>
     <string name="row_gesture_title">Gesturile căștilor</string>
     <string name="row_gesture_sub">Atribuie atingeri și glisări</string>
     <string name="gesture_title">Gesturile căștilor</string>

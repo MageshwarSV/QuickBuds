@@ -7,7 +7,7 @@ build.
 
 ## Reporting a model
 
-Open an [issue](https://github.com/spizganed/QuickBuds/issues) with:
+Open an [issue](https://github.com/MageshwarSV/QuickBuds/issues) with:
 
 1. The earbuds' model and the phone (model, Android version).
 2. What works and what does not. "The switch flips but nothing changes on the buds" is useful.
@@ -23,7 +23,7 @@ You need JDK 21 and the Android SDK with platform 37. Android Studio brings both
 works as `JAVA_HOME`.
 
 ```bash
-git clone https://github.com/spizganed/QuickBuds.git
+git clone https://github.com/MageshwarSV/QuickBuds.git
 cd QuickBuds
 echo "sdk.dir=$HOME/Android/Sdk" > local.properties   # your SDK path
 ./gradlew assembleDebug

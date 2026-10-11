@@ -178,12 +178,13 @@
     <string name="update_permission_title">Izinkan memasang pembaruan</string>
     <string name="update_permission_body">Android memerlukan izin Anda untuk memasang pembaruan dari QuickBuds.</string>
     <string name="update_permission_action">Buka pengaturan</string>
-    <string name="update_auto_title">Periksa saat dibuka</string>
-    <string name="update_auto_sub">Cari versi baru saat aplikasi dibuka</string>
+    <string name="update_auto_title">Periksa pembaruan</string>
+    <string name="update_auto_sub">Cari versi baru dan beri tahu Anda</string>
     <string name="update_found_title">QuickBuds %1$s tersedia</string>
     <string name="update_found_body">Anda memakai %1$s. Buka layar pembaruan untuk melihat yang baru.</string>
     <string name="update_found_view">Lihat</string>
-    <string name="update_later">Nanti</string>
+    <string name="update_channel">Pembaruan aplikasi</string>
+    <string name="update_ignore">Abaikan</string>
     <string name="row_gesture_title">Gestur earbud</string>
     <string name="row_gesture_sub">Atur ketukan dan geser</string>
     <string name="gesture_title">Gestur earbud</string>

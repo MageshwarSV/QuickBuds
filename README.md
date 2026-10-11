@@ -6,7 +6,7 @@
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](./LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android%208%2B-3DDC84.svg)]()
-[![Release](https://img.shields.io/github/v/release/spizganed/QuickBuds)](https://github.com/spizganed/QuickBuds/releases/latest)
+[![Release](https://img.shields.io/github/v/release/MageshwarSV/QuickBuds)](https://github.com/MageshwarSV/QuickBuds/releases/latest)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E5B?logo=kofi&logoColor=white)](https://ko-fi.com/spizganed)
 
 QuickBuds does everything the vendor app does for your earbuds, in a fast, clean app with a real
@@ -17,7 +17,7 @@ donate on [Ko-fi](https://ko-fi.com/spizganed).
 
 > **Desktop app for Windows and Linux.** A small native app in [`desktop/`](./desktop) with a tray icon,
 > no drivers and no background services: battery, noise control, low latency, the equalizer, gestures,
-> hearing profile, dual connection, earbud settings, the phone's themes and colour presets, and a packet log. Download it from the [latest release](https://github.com/spizganed/QuickBuds/releases/latest):
+> hearing profile, dual connection, earbud settings, the phone's themes and colour presets, and a packet log. Download it from the [latest release](https://github.com/MageshwarSV/QuickBuds/releases/latest):
 > `windows-x64.zip` (portable, just unzip and run) or `linux-x64.tar.gz` (needs BlueZ, GTK 3 and
 > libayatana-appindicator; see its README). Pair the buds in your system's Bluetooth settings first. With
 > Dual connection on, the phone app and the desktop app work at the same time. It updates itself from
@@ -27,7 +27,7 @@ donate on [Ko-fi](https://ko-fi.com/spizganed).
 > **Arch Linux:** build the package from the repo (it goes to the AUR as `quickbuds-bin` when AUR sign-ups open again):
 >
 > ```bash
-> git clone https://github.com/spizganed/QuickBuds && cd QuickBuds/desktop/aur && makepkg -si
+> git clone https://github.com/MageshwarSV/QuickBuds && cd QuickBuds/desktop/aur && makepkg -si
 > ```
 
 ## Screenshots
@@ -102,7 +102,7 @@ Every page, the Dot matrix style and the Linux tray menu are in [docs/screenshot
 1. Pair your earbuds in Android's Bluetooth settings first. QuickBuds connects to paired earbuds; it
    does not pair them.
 2. Download `QuickBuds<version>.apk` from the
-   [latest release](https://github.com/spizganed/QuickBuds/releases/latest) and install it.
+   [latest release](https://github.com/MageshwarSV/QuickBuds/releases/latest) and install it.
 3. Allow the Bluetooth permission when asked.
 
 > **"App blocked" or "Unknown developer" from Play Protect?** Tap **Install anyway**. QuickBuds is a new,
@@ -126,7 +126,7 @@ and shows only the features each one has.
 | **OnePlus Buds 4** | **Fully working, confirmed**: every feature tested on a Nothing Phone (3a), Android 16. |
 | Every other model | Detected, and its features are built from HeyMelody's own data, but **not confirmed yet**: some may not work. |
 
-**Own other buds? Please tell us what works.** Open an [issue](https://github.com/spizganed/QuickBuds/issues)
+**Own other buds? Please tell us what works.** Open an [issue](https://github.com/MageshwarSV/QuickBuds/issues)
 with your model, what works and what does not, and a log: Dev tools › Export (the file lands in
 `Download/QuickBuds/`), or a Bluetooth HCI snoop log / `adb logcat`. Each report lets the next release fix
 that model. The app asks the same once, on first launch.

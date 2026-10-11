@@ -178,12 +178,13 @@
     <string name="update_permission_title">Cho phép cài bản cập nhật</string>
     <string name="update_permission_body">Android cần bạn cho phép để cài bản cập nhật từ QuickBuds.</string>
     <string name="update_permission_action">Mở cài đặt</string>
-    <string name="update_auto_title">Kiểm tra khi mở</string>
-    <string name="update_auto_sub">Tìm phiên bản mới khi mở ứng dụng</string>
+    <string name="update_auto_title">Kiểm tra cập nhật</string>
+    <string name="update_auto_sub">Tìm phiên bản mới và thông báo cho bạn</string>
     <string name="update_found_title">Đã có QuickBuds %1$s</string>
     <string name="update_found_body">Bạn đang dùng %1$s. Mở màn hình cập nhật để xem có gì mới.</string>
     <string name="update_found_view">Xem</string>
-    <string name="update_later">Để sau</string>
+    <string name="update_channel">Cập nhật ứng dụng</string>
+    <string name="update_ignore">Bỏ qua</string>
     <string name="row_gesture_title">Cử chỉ tai nghe</string>
     <string name="row_gesture_sub">Gán chạm và vuốt</string>
     <string name="gesture_title">Cử chỉ tai nghe</string>
