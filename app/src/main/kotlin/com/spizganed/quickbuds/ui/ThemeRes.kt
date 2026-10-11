@@ -148,17 +148,17 @@ object ThemeRes {
 
     /**
      * The in-app language screen's choices: BCP 47 tag to native name, "" = system default
-     * (LanguageActivity). One entry per values-xx folder.
+     * (LanguageActivity). One entry per values-xx folder. Tamil first, then English; the rest as before.
      */
     val LANGUAGES = listOf(
-        "" to null, "en" to "English", "zh-CN" to "简体中文", "zh-TW" to "繁體中文",
+        "" to null, "ta" to "தமிழ்", "en" to "English", "zh-CN" to "简体中文", "zh-TW" to "繁體中文",
         "ja" to "日本語", "ko" to "한국어",
         "id" to "Bahasa Indonesia", "ms" to "Bahasa Melayu", "cs" to "Čeština", "de" to "Deutsch",
         "es" to "Español", "fil" to "Filipino", "fr" to "Français", "it" to "Italiano",
         "hu" to "Magyar", "nl" to "Nederlands", "pl" to "Polski", "pt" to "Português",
         "ro" to "Română", "sv" to "Svenska", "vi" to "Tiếng Việt", "tr" to "Türkçe",
         "el" to "Ελληνικά", "ru" to "Русский", "uk" to "Українська",
-        "hi" to "हिन्दी", "bn" to "বাংলা", "ta" to "தமிழ்", "th" to "ไทย"
+        "hi" to "हिन्दी", "bn" to "বাংলা", "th" to "ไทย"
     )
     private const val KEY_LANGUAGE = "appLanguage"
 
