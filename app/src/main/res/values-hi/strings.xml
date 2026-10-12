@@ -631,4 +631,26 @@
         <item quantity="one">%1$d दिन</item>
         <item quantity="other">%1$d दिन</item>
     </plurals>
+    <string name="dloc_title">डिस्कनेक्ट की जगहें</string>
+    <string name="dloc_sub">डिवाइस डिस्कनेक्ट होने पर आपका फ़ोन कहाँ था</string>
+    <string name="dloc_record_title">जगहें रिकॉर्ड करें</string>
+    <string name="dloc_record_off">बंद</string>
+    <string name="dloc_record_on">हर बार डिवाइस डिस्कनेक्ट होने पर एक जगह सेव करता है</string>
+    <string name="dloc_needs_background">स्थान की अनुमति हमेशा दें, वरना यह सिर्फ़ ऐप खुला होने पर काम करेगा</string>
+    <string name="dloc_perm_title">स्थान की अनुमति दें</string>
+    <string name="dloc_perm_body">डिवाइस डिस्कनेक्ट होने पर QuickBuds आपके फ़ोन का स्थान सेव करता है। स्थान इसी फ़ोन में रहते हैं।</string>
+    <string name="dloc_bg_title">हमेशा अनुमति दें</string>
+    <string name="dloc_bg_body">ऐप बंद होने पर भी रिकॉर्ड करने के लिए, अगली स्क्रीन पर \"हमेशा अनुमति दें\" चुनें।</string>
+    <string name="dloc_continue">जारी रखें</string>
+    <string name="dloc_history">इतिहास</string>
+    <string name="dloc_empty">अभी कोई जगह नहीं है। हर बार डिवाइस डिस्कनेक्ट होने पर यहाँ एक जगह दिखेगी।</string>
+    <string name="dloc_clear">सभी साफ़ करें</string>
+    <string name="dloc_clear_title">सभी जगहें हटाएँ?</string>
+    <string name="dloc_clear_body">इससे सेव की गई सभी जगहें हट जाएँगी। इसे पहले जैसा नहीं किया जा सकता।</string>
+    <string name="dloc_accuracy">±%1$d मी.</string>
+    <string name="dloc_last_known">आख़िरी ज्ञात स्थिति</string>
+    <string name="dloc_note_off">स्थान बंद था</string>
+    <string name="dloc_note_permission">स्थान की अनुमति नहीं है</string>
+    <string name="dloc_note_not_found">स्थिति नहीं मिली</string>
+    <string name="dloc_no_maps">कोई मैप ऐप नहीं मिला</string>
 </resources>

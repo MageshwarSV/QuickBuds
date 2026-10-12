@@ -715,5 +715,27 @@
         <item quantity="one">%1$d day</item>
         <item quantity="other">%1$d days</item>
     </plurals>
+    <string name="dloc_title">Disconnect locations</string>
+    <string name="dloc_sub">Where your phone was when a device disconnected</string>
+    <string name="dloc_record_title">Record locations</string>
+    <string name="dloc_record_off">Off</string>
+    <string name="dloc_record_on">Saves a place each time a device disconnects</string>
+    <string name="dloc_needs_background">Allow location all the time, or it works only with the app open</string>
+    <string name="dloc_perm_title">Allow location</string>
+    <string name="dloc_perm_body">QuickBuds saves your phone\'s location when a device disconnects. The locations stay on this phone.</string>
+    <string name="dloc_bg_title">Allow all the time</string>
+    <string name="dloc_bg_body">To record with the app closed, choose \"Allow all the time\" on the next screen.</string>
+    <string name="dloc_continue">Continue</string>
+    <string name="dloc_history">History</string>
+    <string name="dloc_empty">No locations yet. A place appears here each time a device disconnects.</string>
+    <string name="dloc_clear">Clear all</string>
+    <string name="dloc_clear_title">Delete all locations?</string>
+    <string name="dloc_clear_body">This deletes every saved location. You cannot undo it.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">last known position</string>
+    <string name="dloc_note_off">Location was off</string>
+    <string name="dloc_note_permission">No location permission</string>
+    <string name="dloc_note_not_found">Position not found</string>
+    <string name="dloc_no_maps">No maps app found</string>
     <string name="usage_range" translatable="false">%1$s – %2$s</string>
 </resources>

@@ -630,4 +630,26 @@
         <item quantity="many">%1$d dias</item>
         <item quantity="other">%1$d dias</item>
     </plurals>
+    <string name="dloc_title">Locais de desconexão</string>
+    <string name="dloc_sub">Onde estava o seu telefone quando um dispositivo se desconectou</string>
+    <string name="dloc_record_title">Gravar locais</string>
+    <string name="dloc_record_off">Desativado</string>
+    <string name="dloc_record_on">Guarda um local sempre que um dispositivo se desconecta</string>
+    <string name="dloc_needs_background">Permita a localização o tempo todo ou ela só funciona com o app aberto</string>
+    <string name="dloc_perm_title">Permitir localização</string>
+    <string name="dloc_perm_body">O QuickBuds guarda a localização do seu telefone quando um dispositivo se desconecta. Os locais ficam neste telefone.</string>
+    <string name="dloc_bg_title">Permitir o tempo todo</string>
+    <string name="dloc_bg_body">Para gravar com o app fechado, escolha \"Permitir o tempo todo\" na próxima tela.</string>
+    <string name="dloc_continue">Continuar</string>
+    <string name="dloc_history">Histórico</string>
+    <string name="dloc_empty">Ainda não há locais. Um local aparece aqui sempre que um dispositivo se desconecta.</string>
+    <string name="dloc_clear">Limpar tudo</string>
+    <string name="dloc_clear_title">Excluir todos os locais?</string>
+    <string name="dloc_clear_body">Isso exclui todos os locais salvos. Não é possível desfazer.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">última posição conhecida</string>
+    <string name="dloc_note_off">A localização estava desativada</string>
+    <string name="dloc_note_permission">Sem permissão de localização</string>
+    <string name="dloc_note_not_found">Posição não encontrada</string>
+    <string name="dloc_no_maps">Nenhum app de mapas encontrado</string>
 </resources>

@@ -630,4 +630,26 @@
     <plurals name="settings_retention_value">
         <item quantity="other">%1$d hari</item>
     </plurals>
+    <string name="dloc_title">Lokasi terputus</string>
+    <string name="dloc_sub">Di mana ponsel Anda saat perangkat terputus</string>
+    <string name="dloc_record_title">Rekam lokasi</string>
+    <string name="dloc_record_off">Mati</string>
+    <string name="dloc_record_on">Menyimpan lokasi setiap kali perangkat terputus</string>
+    <string name="dloc_needs_background">Izinkan lokasi sepanjang waktu, atau hanya berfungsi saat aplikasi terbuka</string>
+    <string name="dloc_perm_title">Izinkan lokasi</string>
+    <string name="dloc_perm_body">QuickBuds menyimpan lokasi ponsel Anda saat perangkat terputus. Lokasi tetap ada di ponsel ini.</string>
+    <string name="dloc_bg_title">Selalu izinkan</string>
+    <string name="dloc_bg_body">Untuk merekam saat aplikasi ditutup, pilih \"Selalu izinkan\" di layar berikutnya.</string>
+    <string name="dloc_continue">Lanjutkan</string>
+    <string name="dloc_history">Riwayat</string>
+    <string name="dloc_empty">Belum ada lokasi. Satu lokasi muncul di sini setiap kali perangkat terputus.</string>
+    <string name="dloc_clear">Hapus semua</string>
+    <string name="dloc_clear_title">Hapus semua lokasi?</string>
+    <string name="dloc_clear_body">Ini menghapus semua lokasi tersimpan. Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">posisi terakhir diketahui</string>
+    <string name="dloc_note_off">Lokasi mati</string>
+    <string name="dloc_note_permission">Tidak ada izin lokasi</string>
+    <string name="dloc_note_not_found">Posisi tidak ditemukan</string>
+    <string name="dloc_no_maps">Aplikasi peta tidak ditemukan</string>
 </resources>

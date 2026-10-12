@@ -629,4 +629,26 @@
         <item quantity="one">%1$d dag</item>
         <item quantity="other">%1$d dagar</item>
     </plurals>
+    <string name="dloc_title">Platser för frånkoppling</string>
+    <string name="dloc_sub">Var din telefon var när en enhet kopplades från</string>
+    <string name="dloc_record_title">Spara platser</string>
+    <string name="dloc_record_off">Av</string>
+    <string name="dloc_record_on">Sparar en plats varje gång en enhet kopplas från</string>
+    <string name="dloc_needs_background">Tillåt plats hela tiden, annars fungerar det bara när appen är öppen</string>
+    <string name="dloc_perm_title">Tillåt plats</string>
+    <string name="dloc_perm_body">QuickBuds sparar telefonens plats när en enhet kopplas från. Platserna finns kvar på den här telefonen.</string>
+    <string name="dloc_bg_title">Tillåt alltid</string>
+    <string name="dloc_bg_body">Om du vill spara när appen är stängd väljer du \"Tillåt alltid\" på nästa skärm.</string>
+    <string name="dloc_continue">Fortsätt</string>
+    <string name="dloc_history">Historik</string>
+    <string name="dloc_empty">Inga platser än. En plats visas här varje gång en enhet kopplas från.</string>
+    <string name="dloc_clear">Rensa alla</string>
+    <string name="dloc_clear_title">Ta bort alla platser?</string>
+    <string name="dloc_clear_body">Det här tar bort alla sparade platser. Du kan inte ångra det.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">senast kända position</string>
+    <string name="dloc_note_off">Plats var avstängd</string>
+    <string name="dloc_note_permission">Ingen platsbehörighet</string>
+    <string name="dloc_note_not_found">Positionen hittades inte</string>
+    <string name="dloc_no_maps">Ingen kartapp hittades</string>
 </resources>

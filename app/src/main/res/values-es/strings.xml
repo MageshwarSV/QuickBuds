@@ -630,4 +630,26 @@
         <item quantity="many">%1$d días</item>
         <item quantity="other">%1$d días</item>
     </plurals>
+    <string name="dloc_title">Ubicaciones de desconexión</string>
+    <string name="dloc_sub">Dónde estaba tu teléfono cuando se desconectó un dispositivo</string>
+    <string name="dloc_record_title">Guardar ubicaciones</string>
+    <string name="dloc_record_off">Desactivado</string>
+    <string name="dloc_record_on">Guarda un lugar cada vez que se desconecta un dispositivo</string>
+    <string name="dloc_needs_background">Permite la ubicación todo el tiempo o solo funcionará con la app abierta</string>
+    <string name="dloc_perm_title">Permitir ubicación</string>
+    <string name="dloc_perm_body">QuickBuds guarda la ubicación de tu teléfono cuando se desconecta un dispositivo. Las ubicaciones se quedan en este teléfono.</string>
+    <string name="dloc_bg_title">Permitir todo el tiempo</string>
+    <string name="dloc_bg_body">Para guardar con la app cerrada, elige \"Permitir todo el tiempo\" en la siguiente pantalla.</string>
+    <string name="dloc_continue">Continuar</string>
+    <string name="dloc_history">Historial</string>
+    <string name="dloc_empty">Aún no hay ubicaciones. Aquí aparece un lugar cada vez que se desconecta un dispositivo.</string>
+    <string name="dloc_clear">Borrar todo</string>
+    <string name="dloc_clear_title">¿Eliminar todas las ubicaciones?</string>
+    <string name="dloc_clear_body">Se eliminarán todas las ubicaciones guardadas. No se puede deshacer.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">última posición conocida</string>
+    <string name="dloc_note_off">La ubicación estaba desactivada</string>
+    <string name="dloc_note_permission">Sin permiso de ubicación</string>
+    <string name="dloc_note_not_found">Posición no encontrada</string>
+    <string name="dloc_no_maps">No se encontró ninguna app de mapas</string>
 </resources>

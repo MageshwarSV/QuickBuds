@@ -628,4 +628,26 @@
     <plurals name="settings_retention_value">
         <item quantity="other">%1$d 日</item>
     </plurals>
+    <string name="dloc_title">切断場所</string>
+    <string name="dloc_sub">デバイスの接続が切れたときのスマートフォンの場所</string>
+    <string name="dloc_record_title">場所を記録</string>
+    <string name="dloc_record_off">オフ</string>
+    <string name="dloc_record_on">デバイスの接続が切れるたびに場所を保存します</string>
+    <string name="dloc_needs_background">位置情報を常に許可してください。許可しない場合、アプリを開いているときのみ動作します</string>
+    <string name="dloc_perm_title">位置情報を許可</string>
+    <string name="dloc_perm_body">デバイスの接続が切れたとき、QuickBuds はスマートフォンの位置情報を保存します。位置情報はこのスマートフォンにのみ保存されます。</string>
+    <string name="dloc_bg_title">常に許可</string>
+    <string name="dloc_bg_body">アプリを閉じている間も記録するには、次の画面で「常に許可」を選択してください。</string>
+    <string name="dloc_continue">続行</string>
+    <string name="dloc_history">履歴</string>
+    <string name="dloc_empty">場所はまだありません。デバイスの接続が切れるたびに、ここに場所が表示されます。</string>
+    <string name="dloc_clear">すべて消去</string>
+    <string name="dloc_clear_title">すべての場所を削除しますか？</string>
+    <string name="dloc_clear_body">保存したすべての場所を削除します。この操作は元に戻せません。</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">最後に確認した位置</string>
+    <string name="dloc_note_off">位置情報がオフでした</string>
+    <string name="dloc_note_permission">位置情報の権限がありません</string>
+    <string name="dloc_note_not_found">位置が見つかりません</string>
+    <string name="dloc_no_maps">地図アプリが見つかりません</string>
 </resources>

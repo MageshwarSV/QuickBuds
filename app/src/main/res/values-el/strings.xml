@@ -629,4 +629,26 @@
         <item quantity="one">%1$d ημέρα</item>
         <item quantity="other">%1$d ημέρες</item>
     </plurals>
+    <string name="dloc_title">Τοποθεσίες αποσύνδεσης</string>
+    <string name="dloc_sub">Πού βρισκόταν το τηλέφωνό σας όταν αποσυνδέθηκε μια συσκευή</string>
+    <string name="dloc_record_title">Καταγραφή τοποθεσιών</string>
+    <string name="dloc_record_off">Ανενεργό</string>
+    <string name="dloc_record_on">Αποθηκεύει μια τοποθεσία κάθε φορά που αποσυνδέεται μια συσκευή</string>
+    <string name="dloc_needs_background">Επιτρέψτε την τοποθεσία συνεχώς, αλλιώς λειτουργεί μόνο με ανοιχτή την εφαρμογή</string>
+    <string name="dloc_perm_title">Να επιτρέπεται η τοποθεσία</string>
+    <string name="dloc_perm_body">Το QuickBuds αποθηκεύει την τοποθεσία του τηλεφώνου σας όταν αποσυνδέεται μια συσκευή. Οι τοποθεσίες μένουν σε αυτό το τηλέφωνο.</string>
+    <string name="dloc_bg_title">Να επιτρέπεται συνεχώς</string>
+    <string name="dloc_bg_body">Για καταγραφή με κλειστή την εφαρμογή, επιλέξτε \"Να επιτρέπεται συνεχώς\" στην επόμενη οθόνη.</string>
+    <string name="dloc_continue">Συνέχεια</string>
+    <string name="dloc_history">Ιστορικό</string>
+    <string name="dloc_empty">Δεν υπάρχουν ακόμα τοποθεσίες. Μια τοποθεσία εμφανίζεται εδώ κάθε φορά που αποσυνδέεται μια συσκευή.</string>
+    <string name="dloc_clear">Διαγραφή όλων</string>
+    <string name="dloc_clear_title">Διαγραφή όλων των τοποθεσιών;</string>
+    <string name="dloc_clear_body">Αυτό διαγράφει όλες τις αποθηκευμένες τοποθεσίες. Δεν μπορείτε να το αναιρέσετε.</string>
+    <string name="dloc_accuracy">±%1$d μ.</string>
+    <string name="dloc_last_known">τελευταία γνωστή θέση</string>
+    <string name="dloc_note_off">Η τοποθεσία ήταν ανενεργή</string>
+    <string name="dloc_note_permission">Δεν υπάρχει άδεια τοποθεσίας</string>
+    <string name="dloc_note_not_found">Η θέση δεν βρέθηκε</string>
+    <string name="dloc_no_maps">Δεν βρέθηκε εφαρμογή χαρτών</string>
 </resources>

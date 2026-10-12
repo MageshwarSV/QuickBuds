@@ -629,4 +629,26 @@
         <item quantity="one">%1$d দিন</item>
         <item quantity="other">%1$d দিন</item>
     </plurals>
+    <string name="dloc_title">সংযোগ বিচ্ছিন্নের স্থান</string>
+    <string name="dloc_sub">ডিভাইসের সংযোগ বিচ্ছিন্ন হওয়ার সময় আপনার ফোন কোথায় ছিল</string>
+    <string name="dloc_record_title">স্থান রেকর্ড করুন</string>
+    <string name="dloc_record_off">বন্ধ</string>
+    <string name="dloc_record_on">ডিভাইসের সংযোগ বিচ্ছিন্ন হলেই একটি স্থান সেভ করে</string>
+    <string name="dloc_needs_background">লোকেশন সবসময় অনুমতি দিন, না হলে অ্যাপ খোলা থাকলেই কাজ করবে</string>
+    <string name="dloc_perm_title">লোকেশনের অনুমতি দিন</string>
+    <string name="dloc_perm_body">ডিভাইসের সংযোগ বিচ্ছিন্ন হলে QuickBuds আপনার ফোনের লোকেশন সেভ করে। লোকেশন এই ফোনেই থাকে।</string>
+    <string name="dloc_bg_title">সবসময় অনুমতি দিন</string>
+    <string name="dloc_bg_body">অ্যাপ বন্ধ থাকলেও রেকর্ড করতে, পরের স্ক্রিনে \"সবসময় অনুমতি দিন\" বেছে নিন।</string>
+    <string name="dloc_continue">চালিয়ে যান</string>
+    <string name="dloc_history">ইতিহাস</string>
+    <string name="dloc_empty">এখনও কোনো স্থান নেই। ডিভাইসের সংযোগ বিচ্ছিন্ন হলেই এখানে একটি স্থান দেখা যাবে।</string>
+    <string name="dloc_clear">সব মুছুন</string>
+    <string name="dloc_clear_title">সব স্থান মুছবেন?</string>
+    <string name="dloc_clear_body">এতে সেভ করা সব স্থান মুছে যাবে। এটি আর ফিরিয়ে আনা যাবে না।</string>
+    <string name="dloc_accuracy">±%1$d মি.</string>
+    <string name="dloc_last_known">সর্বশেষ জানা অবস্থান</string>
+    <string name="dloc_note_off">লোকেশন বন্ধ ছিল</string>
+    <string name="dloc_note_permission">লোকেশনের অনুমতি নেই</string>
+    <string name="dloc_note_not_found">অবস্থান পাওয়া যায়নি</string>
+    <string name="dloc_no_maps">কোনো ম্যাপ অ্যাপ পাওয়া যায়নি</string>
 </resources>

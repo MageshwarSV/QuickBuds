@@ -629,4 +629,26 @@
         <item quantity="one">%1$d gün</item>
         <item quantity="other">%1$d gün</item>
     </plurals>
+    <string name="dloc_title">Bağlantı kesilme konumları</string>
+    <string name="dloc_sub">Bir cihazın bağlantısı kesildiğinde telefonunuzun bulunduğu yer</string>
+    <string name="dloc_record_title">Konumları kaydet</string>
+    <string name="dloc_record_off">Kapalı</string>
+    <string name="dloc_record_on">Bir cihazın bağlantısı her kesildiğinde bir yer kaydeder</string>
+    <string name="dloc_needs_background">Konuma her zaman izin verin, yoksa yalnızca uygulama açıkken çalışır</string>
+    <string name="dloc_perm_title">Konuma izin ver</string>
+    <string name="dloc_perm_body">QuickBuds, bir cihazın bağlantısı kesildiğinde telefonunuzun konumunu kaydeder. Konumlar bu telefonda kalır.</string>
+    <string name="dloc_bg_title">Her zaman izin ver</string>
+    <string name="dloc_bg_body">Uygulama kapalıyken kaydetmek için sonraki ekranda \"Her zaman izin ver\" seçeneğini belirleyin.</string>
+    <string name="dloc_continue">Devam</string>
+    <string name="dloc_history">Geçmiş</string>
+    <string name="dloc_empty">Henüz konum yok. Bir cihazın bağlantısı her kesildiğinde burada bir yer görünür.</string>
+    <string name="dloc_clear">Tümünü temizle</string>
+    <string name="dloc_clear_title">Tüm konumlar silinsin mi?</string>
+    <string name="dloc_clear_body">Kayıtlı tüm konumlar silinir. Bu işlem geri alınamaz.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">son bilinen konum</string>
+    <string name="dloc_note_off">Konum kapalıydı</string>
+    <string name="dloc_note_permission">Konum izni yok</string>
+    <string name="dloc_note_not_found">Konum bulunamadı</string>
+    <string name="dloc_no_maps">Harita uygulaması bulunamadı</string>
 </resources>

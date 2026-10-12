@@ -631,4 +631,26 @@
         <item quantity="many">%1$d dni</item>
         <item quantity="other">%1$d dnia</item>
     </plurals>
+    <string name="dloc_title">Miejsca rozłączenia</string>
+    <string name="dloc_sub">Gdzie był telefon, gdy urządzenie się rozłączyło</string>
+    <string name="dloc_record_title">Zapisuj miejsca</string>
+    <string name="dloc_record_off">Wyłączone</string>
+    <string name="dloc_record_on">Zapisuje miejsce przy każdym rozłączeniu urządzenia</string>
+    <string name="dloc_needs_background">Zezwól na lokalizację cały czas, inaczej działa tylko przy otwartej aplikacji</string>
+    <string name="dloc_perm_title">Zezwól na lokalizację</string>
+    <string name="dloc_perm_body">QuickBuds zapisuje lokalizację telefonu, gdy urządzenie się rozłączy. Lokalizacje zostają na tym telefonie.</string>
+    <string name="dloc_bg_title">Zawsze zezwalaj</string>
+    <string name="dloc_bg_body">Aby zapisywać przy zamkniętej aplikacji, wybierz \"Zawsze zezwalaj\" na następnym ekranie.</string>
+    <string name="dloc_continue">Dalej</string>
+    <string name="dloc_history">Historia</string>
+    <string name="dloc_empty">Brak miejsc. Miejsce pojawi się tutaj przy każdym rozłączeniu urządzenia.</string>
+    <string name="dloc_clear">Wyczyść wszystko</string>
+    <string name="dloc_clear_title">Usunąć wszystkie lokalizacje?</string>
+    <string name="dloc_clear_body">Spowoduje to usunięcie wszystkich zapisanych lokalizacji. Nie można tego cofnąć.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">ostatnia znana pozycja</string>
+    <string name="dloc_note_off">Lokalizacja była wyłączona</string>
+    <string name="dloc_note_permission">Brak uprawnienia do lokalizacji</string>
+    <string name="dloc_note_not_found">Nie znaleziono pozycji</string>
+    <string name="dloc_no_maps">Nie znaleziono aplikacji map</string>
 </resources>

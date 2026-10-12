@@ -629,4 +629,26 @@
         <item quantity="one">%1$d araw</item>
         <item quantity="other">%1$d araw</item>
     </plurals>
+    <string name="dloc_title">Mga lokasyon ng pagkadiskonekta</string>
+    <string name="dloc_sub">Kung nasaan ang iyong phone nang madiskonekta ang isang device</string>
+    <string name="dloc_record_title">I-record ang mga lokasyon</string>
+    <string name="dloc_record_off">Naka-off</string>
+    <string name="dloc_record_on">Nagse-save ng lugar sa bawat pagkadiskonekta ng device</string>
+    <string name="dloc_needs_background">Payagan ang lokasyon sa lahat ng oras, o gagana lang ito kapag bukas ang app</string>
+    <string name="dloc_perm_title">Payagan ang lokasyon</string>
+    <string name="dloc_perm_body">Sine-save ng QuickBuds ang lokasyon ng iyong phone kapag nadiskonekta ang isang device. Nananatili ang mga lokasyon sa phone na ito.</string>
+    <string name="dloc_bg_title">Palaging payagan</string>
+    <string name="dloc_bg_body">Para mag-record kahit sarado ang app, piliin ang \"Palaging payagan\" sa susunod na screen.</string>
+    <string name="dloc_continue">Magpatuloy</string>
+    <string name="dloc_history">History</string>
+    <string name="dloc_empty">Wala pang lokasyon. May lalabas na lugar dito sa bawat pagkadiskonekta ng device.</string>
+    <string name="dloc_clear">I-clear lahat</string>
+    <string name="dloc_clear_title">Tanggalin ang lahat ng lokasyon?</string>
+    <string name="dloc_clear_body">Tatanggalin nito ang lahat ng naka-save na lokasyon. Hindi mo ito maibabalik.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">huling alam na posisyon</string>
+    <string name="dloc_note_off">Naka-off ang lokasyon</string>
+    <string name="dloc_note_permission">Walang pahintulot sa lokasyon</string>
+    <string name="dloc_note_not_found">Hindi nahanap ang posisyon</string>
+    <string name="dloc_no_maps">Walang nahanap na maps app</string>
 </resources>

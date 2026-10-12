@@ -630,4 +630,26 @@
     <plurals name="settings_retention_value">
         <item quantity="other">%1$d วัน</item>
     </plurals>
+    <string name="dloc_title">ตำแหน่งที่ตัดการเชื่อมต่อ</string>
+    <string name="dloc_sub">ตำแหน่งของโทรศัพท์เมื่ออุปกรณ์ตัดการเชื่อมต่อ</string>
+    <string name="dloc_record_title">บันทึกตำแหน่ง</string>
+    <string name="dloc_record_off">ปิด</string>
+    <string name="dloc_record_on">บันทึกสถานที่ทุกครั้งที่อุปกรณ์ตัดการเชื่อมต่อ</string>
+    <string name="dloc_needs_background">อนุญาตตำแหน่งตลอดเวลา ไม่เช่นนั้นจะทำงานเฉพาะเมื่อเปิดแอป</string>
+    <string name="dloc_perm_title">อนุญาตตำแหน่ง</string>
+    <string name="dloc_perm_body">QuickBuds บันทึกตำแหน่งของโทรศัพท์เมื่ออุปกรณ์ตัดการเชื่อมต่อ ตำแหน่งจะอยู่ในโทรศัพท์เครื่องนี้เท่านั้น</string>
+    <string name="dloc_bg_title">อนุญาตตลอดเวลา</string>
+    <string name="dloc_bg_body">หากต้องการบันทึกขณะปิดแอป ให้เลือก \"อนุญาตตลอดเวลา\" ในหน้าจอถัดไป</string>
+    <string name="dloc_continue">ต่อไป</string>
+    <string name="dloc_history">ประวัติ</string>
+    <string name="dloc_empty">ยังไม่มีตำแหน่ง สถานที่จะปรากฏที่นี่ทุกครั้งที่อุปกรณ์ตัดการเชื่อมต่อ</string>
+    <string name="dloc_clear">ล้างทั้งหมด</string>
+    <string name="dloc_clear_title">ลบตำแหน่งทั้งหมดหรือไม่</string>
+    <string name="dloc_clear_body">การดำเนินการนี้จะลบตำแหน่งที่บันทึกไว้ทั้งหมด และไม่สามารถเลิกทำได้</string>
+    <string name="dloc_accuracy">±%1$d ม.</string>
+    <string name="dloc_last_known">ตำแหน่งล่าสุดที่ทราบ</string>
+    <string name="dloc_note_off">ตำแหน่งปิดอยู่</string>
+    <string name="dloc_note_permission">ไม่มีสิทธิ์เข้าถึงตำแหน่ง</string>
+    <string name="dloc_note_not_found">ไม่พบตำแหน่ง</string>
+    <string name="dloc_no_maps">ไม่พบแอปแผนที่</string>
 </resources>

@@ -630,4 +630,26 @@
         <item quantity="many">%1$d jours</item>
         <item quantity="other">%1$d jours</item>
     </plurals>
+    <string name="dloc_title">Lieux de déconnexion</string>
+    <string name="dloc_sub">Où se trouvait votre téléphone quand un appareil s\'est déconnecté</string>
+    <string name="dloc_record_title">Enregistrer les lieux</string>
+    <string name="dloc_record_off">Désactivé</string>
+    <string name="dloc_record_on">Enregistre un lieu à chaque déconnexion d\'un appareil</string>
+    <string name="dloc_needs_background">Autorisez la localisation en permanence, sinon elle ne fonctionne qu\'avec l\'appli ouverte</string>
+    <string name="dloc_perm_title">Autoriser la localisation</string>
+    <string name="dloc_perm_body">QuickBuds enregistre la position de votre téléphone quand un appareil se déconnecte. Les positions restent sur ce téléphone.</string>
+    <string name="dloc_bg_title">Toujours autoriser</string>
+    <string name="dloc_bg_body">Pour enregistrer avec l\'appli fermée, choisissez \"Toujours autoriser\" sur l\'écran suivant.</string>
+    <string name="dloc_continue">Continuer</string>
+    <string name="dloc_history">Historique</string>
+    <string name="dloc_empty">Aucun lieu pour le moment. Un lieu apparaît ici à chaque déconnexion d\'un appareil.</string>
+    <string name="dloc_clear">Tout effacer</string>
+    <string name="dloc_clear_title">Supprimer tous les lieux ?</string>
+    <string name="dloc_clear_body">Cela supprime tous les lieux enregistrés. Vous ne pouvez pas l\'annuler.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">dernière position connue</string>
+    <string name="dloc_note_off">La localisation était désactivée</string>
+    <string name="dloc_note_permission">Aucune autorisation de localisation</string>
+    <string name="dloc_note_not_found">Position introuvable</string>
+    <string name="dloc_no_maps">Aucune appli de cartes trouvée</string>
 </resources>

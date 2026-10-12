@@ -629,4 +629,26 @@
         <item quantity="one">%1$d dag</item>
         <item quantity="other">%1$d dagen</item>
     </plurals>
+    <string name="dloc_title">Verbindingsverlies-locaties</string>
+    <string name="dloc_sub">Waar je telefoon was toen een apparaat de verbinding verloor</string>
+    <string name="dloc_record_title">Locaties opslaan</string>
+    <string name="dloc_record_off">Uit</string>
+    <string name="dloc_record_on">Slaat een plek op elke keer dat een apparaat de verbinding verliest</string>
+    <string name="dloc_needs_background">Sta locatie altijd toe, anders werkt het alleen met de app open</string>
+    <string name="dloc_perm_title">Locatie toestaan</string>
+    <string name="dloc_perm_body">QuickBuds slaat de locatie van je telefoon op wanneer een apparaat de verbinding verliest. De locaties blijven op deze telefoon.</string>
+    <string name="dloc_bg_title">Altijd toestaan</string>
+    <string name="dloc_bg_body">Kies op het volgende scherm \"Altijd toestaan\" om op te slaan met de app gesloten.</string>
+    <string name="dloc_continue">Doorgaan</string>
+    <string name="dloc_history">Geschiedenis</string>
+    <string name="dloc_empty">Nog geen locaties. Hier verschijnt een plek elke keer dat een apparaat de verbinding verliest.</string>
+    <string name="dloc_clear">Alles wissen</string>
+    <string name="dloc_clear_title">Alle locaties verwijderen?</string>
+    <string name="dloc_clear_body">Hiermee verwijder je alle opgeslagen locaties. Je kunt dit niet ongedaan maken.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">laatst bekende positie</string>
+    <string name="dloc_note_off">Locatie stond uit</string>
+    <string name="dloc_note_permission">Geen locatietoestemming</string>
+    <string name="dloc_note_not_found">Positie niet gevonden</string>
+    <string name="dloc_no_maps">Geen kaartenapp gevonden</string>
 </resources>

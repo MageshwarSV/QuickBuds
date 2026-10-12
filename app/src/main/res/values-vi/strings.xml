@@ -630,4 +630,26 @@
     <plurals name="settings_retention_value">
         <item quantity="other">%1$d ngày</item>
     </plurals>
+    <string name="dloc_title">Vị trí ngắt kết nối</string>
+    <string name="dloc_sub">Vị trí điện thoại của bạn khi một thiết bị ngắt kết nối</string>
+    <string name="dloc_record_title">Ghi lại vị trí</string>
+    <string name="dloc_record_off">Tắt</string>
+    <string name="dloc_record_on">Lưu một địa điểm mỗi khi thiết bị ngắt kết nối</string>
+    <string name="dloc_needs_background">Hãy cho phép vị trí mọi lúc, nếu không tính năng chỉ hoạt động khi mở ứng dụng</string>
+    <string name="dloc_perm_title">Cho phép vị trí</string>
+    <string name="dloc_perm_body">QuickBuds lưu vị trí điện thoại của bạn khi thiết bị ngắt kết nối. Các vị trí ở lại trên điện thoại này.</string>
+    <string name="dloc_bg_title">Luôn cho phép</string>
+    <string name="dloc_bg_body">Để ghi lại khi đóng ứng dụng, hãy chọn \"Luôn cho phép\" ở màn hình tiếp theo.</string>
+    <string name="dloc_continue">Tiếp tục</string>
+    <string name="dloc_history">Lịch sử</string>
+    <string name="dloc_empty">Chưa có vị trí nào. Một địa điểm sẽ xuất hiện ở đây mỗi khi thiết bị ngắt kết nối.</string>
+    <string name="dloc_clear">Xóa tất cả</string>
+    <string name="dloc_clear_title">Xóa tất cả vị trí?</string>
+    <string name="dloc_clear_body">Thao tác này xóa mọi vị trí đã lưu. Bạn không thể hoàn tác.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">vị trí biết gần nhất</string>
+    <string name="dloc_note_off">Vị trí đã tắt</string>
+    <string name="dloc_note_permission">Không có quyền vị trí</string>
+    <string name="dloc_note_not_found">Không tìm thấy vị trí</string>
+    <string name="dloc_no_maps">Không tìm thấy ứng dụng bản đồ</string>
 </resources>

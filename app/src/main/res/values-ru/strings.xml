@@ -631,4 +631,26 @@
         <item quantity="many">%1$d дней</item>
         <item quantity="other">%1$d дня</item>
     </plurals>
+    <string name="dloc_title">Места отключения</string>
+    <string name="dloc_sub">Где был телефон, когда устройство отключилось</string>
+    <string name="dloc_record_title">Записывать места</string>
+    <string name="dloc_record_off">Выкл.</string>
+    <string name="dloc_record_on">Сохраняет место при каждом отключении устройства</string>
+    <string name="dloc_needs_background">Разрешите геоданные всегда, иначе функция работает только при открытом приложении</string>
+    <string name="dloc_perm_title">Разрешить доступ к геоданным</string>
+    <string name="dloc_perm_body">QuickBuds сохраняет местоположение телефона, когда устройство отключается. Данные остаются на этом телефоне.</string>
+    <string name="dloc_bg_title">Всегда разрешать</string>
+    <string name="dloc_bg_body">Чтобы записывать при закрытом приложении, выберите \"Всегда разрешать\" на следующем экране.</string>
+    <string name="dloc_continue">Продолжить</string>
+    <string name="dloc_history">История</string>
+    <string name="dloc_empty">Мест пока нет. Место появится здесь при каждом отключении устройства.</string>
+    <string name="dloc_clear">Очистить всё</string>
+    <string name="dloc_clear_title">Удалить все места?</string>
+    <string name="dloc_clear_body">Все сохранённые места будут удалены. Это действие нельзя отменить.</string>
+    <string name="dloc_accuracy">±%1$d м</string>
+    <string name="dloc_last_known">последнее известное местоположение</string>
+    <string name="dloc_note_off">Геолокация была выключена</string>
+    <string name="dloc_note_permission">Нет разрешения на геолокацию</string>
+    <string name="dloc_note_not_found">Местоположение не найдено</string>
+    <string name="dloc_no_maps">Приложение для карт не найдено</string>
 </resources>

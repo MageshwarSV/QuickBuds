@@ -629,4 +629,26 @@
         <item quantity="one">%1$d nap</item>
         <item quantity="other">%1$d nap</item>
     </plurals>
+    <string name="dloc_title">Lecsatlakozási helyek</string>
+    <string name="dloc_sub">Hol volt a telefonod, amikor egy eszköz lecsatlakozott</string>
+    <string name="dloc_record_title">Helyek rögzítése</string>
+    <string name="dloc_record_off">Ki</string>
+    <string name="dloc_record_on">Minden eszköz-lecsatlakozáskor elment egy helyet</string>
+    <string name="dloc_needs_background">Engedélyezd a helyadatokat mindig, különben csak megnyitott appal működik</string>
+    <string name="dloc_perm_title">Helyengedély</string>
+    <string name="dloc_perm_body">A QuickBuds elmenti a telefonod helyét, amikor egy eszköz lecsatlakozik. A helyek ezen a telefonon maradnak.</string>
+    <string name="dloc_bg_title">Mindig engedélyezem</string>
+    <string name="dloc_bg_body">Ha bezárt appal is rögzíteni szeretnél, válaszd a „Mindig engedélyezem” lehetőséget a következő képernyőn.</string>
+    <string name="dloc_continue">Tovább</string>
+    <string name="dloc_history">Előzmények</string>
+    <string name="dloc_empty">Még nincs hely. Itt jelenik meg egy hely minden eszköz-lecsatlakozáskor.</string>
+    <string name="dloc_clear">Összes törlése</string>
+    <string name="dloc_clear_title">Törlöd az összes helyet?</string>
+    <string name="dloc_clear_body">Ez törli az összes mentett helyet. Nem vonható vissza.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">utolsó ismert pozíció</string>
+    <string name="dloc_note_off">A helymeghatározás ki volt kapcsolva</string>
+    <string name="dloc_note_permission">Nincs helyengedély</string>
+    <string name="dloc_note_not_found">A pozíció nem található</string>
+    <string name="dloc_no_maps">Nem található térképalkalmazás</string>
 </resources>

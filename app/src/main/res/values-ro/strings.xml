@@ -630,4 +630,26 @@
         <item quantity="few">%1$d zile</item>
         <item quantity="other">%1$d de zile</item>
     </plurals>
+    <string name="dloc_title">Locuri de deconectare</string>
+    <string name="dloc_sub">Unde se afla telefonul când un dispozitiv s-a deconectat</string>
+    <string name="dloc_record_title">Înregistrează locurile</string>
+    <string name="dloc_record_off">Dezactivat</string>
+    <string name="dloc_record_on">Salvează un loc de fiecare dată când un dispozitiv se deconectează</string>
+    <string name="dloc_needs_background">Permite locația tot timpul, altfel funcționează doar cu aplicația deschisă</string>
+    <string name="dloc_perm_title">Permite locația</string>
+    <string name="dloc_perm_body">QuickBuds salvează locația telefonului când un dispozitiv se deconectează. Locațiile rămân pe acest telefon.</string>
+    <string name="dloc_bg_title">Permite tot timpul</string>
+    <string name="dloc_bg_body">Ca să înregistrezi cu aplicația închisă, alege \"Permite tot timpul\" pe ecranul următor.</string>
+    <string name="dloc_continue">Continuă</string>
+    <string name="dloc_history">Istoric</string>
+    <string name="dloc_empty">Niciun loc încă. Un loc apare aici de fiecare dată când un dispozitiv se deconectează.</string>
+    <string name="dloc_clear">Șterge tot</string>
+    <string name="dloc_clear_title">Ștergi toate locurile?</string>
+    <string name="dloc_clear_body">Aceasta șterge toate locurile salvate. Nu poți anula acțiunea.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">ultima poziție cunoscută</string>
+    <string name="dloc_note_off">Locația era dezactivată</string>
+    <string name="dloc_note_permission">Fără permisiune de locație</string>
+    <string name="dloc_note_not_found">Poziția nu a fost găsită</string>
+    <string name="dloc_no_maps">Nu s-a găsit nicio aplicație de hărți</string>
 </resources>

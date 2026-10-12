@@ -629,4 +629,26 @@
         <item quantity="one">%1$d Tag</item>
         <item quantity="other">%1$d Tage</item>
     </plurals>
+    <string name="dloc_title">Trennungsorte</string>
+    <string name="dloc_sub">Wo sich dein Smartphone befand, als ein Gerät getrennt wurde</string>
+    <string name="dloc_record_title">Orte aufzeichnen</string>
+    <string name="dloc_record_off">Aus</string>
+    <string name="dloc_record_on">Speichert bei jeder Trennung eines Geräts einen Ort</string>
+    <string name="dloc_needs_background">Standort immer zulassen, sonst funktioniert es nur bei geöffneter App</string>
+    <string name="dloc_perm_title">Standort zulassen</string>
+    <string name="dloc_perm_body">QuickBuds speichert den Standort deines Smartphones, wenn ein Gerät getrennt wird. Die Orte bleiben auf diesem Smartphone.</string>
+    <string name="dloc_bg_title">Immer zulassen</string>
+    <string name="dloc_bg_body">Um bei geschlossener App aufzuzeichnen, wähle auf dem nächsten Bildschirm \"Immer zulassen\".</string>
+    <string name="dloc_continue">Weiter</string>
+    <string name="dloc_history">Verlauf</string>
+    <string name="dloc_empty">Noch keine Orte. Bei jeder Trennung eines Geräts erscheint hier ein Ort.</string>
+    <string name="dloc_clear">Alle löschen</string>
+    <string name="dloc_clear_title">Alle Orte löschen?</string>
+    <string name="dloc_clear_body">Dadurch werden alle gespeicherten Orte gelöscht. Das kann nicht rückgängig gemacht werden.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">zuletzt bekannte Position</string>
+    <string name="dloc_note_off">Standort war aus</string>
+    <string name="dloc_note_permission">Keine Standortberechtigung</string>
+    <string name="dloc_note_not_found">Position nicht gefunden</string>
+    <string name="dloc_no_maps">Keine Karten-App gefunden</string>
 </resources>

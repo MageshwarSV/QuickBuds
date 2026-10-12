@@ -630,4 +630,26 @@
         <item quantity="many">%1$d giorni</item>
         <item quantity="other">%1$d giorni</item>
     </plurals>
+    <string name="dloc_title">Posizioni di disconnessione</string>
+    <string name="dloc_sub">Dove si trovava il telefono quando un dispositivo si è disconnesso</string>
+    <string name="dloc_record_title">Registra posizioni</string>
+    <string name="dloc_record_off">Disattivato</string>
+    <string name="dloc_record_on">Salva un luogo a ogni disconnessione di un dispositivo</string>
+    <string name="dloc_needs_background">Consenti la posizione sempre, altrimenti funziona solo con l\'app aperta</string>
+    <string name="dloc_perm_title">Consenti posizione</string>
+    <string name="dloc_perm_body">QuickBuds salva la posizione del telefono quando un dispositivo si disconnette. Le posizioni restano su questo telefono.</string>
+    <string name="dloc_bg_title">Consenti sempre</string>
+    <string name="dloc_bg_body">Per registrare con l\'app chiusa, scegli \"Consenti sempre\" nella schermata successiva.</string>
+    <string name="dloc_continue">Continua</string>
+    <string name="dloc_history">Cronologia</string>
+    <string name="dloc_empty">Nessuna posizione per ora. Un luogo appare qui a ogni disconnessione di un dispositivo.</string>
+    <string name="dloc_clear">Cancella tutto</string>
+    <string name="dloc_clear_title">Eliminare tutte le posizioni?</string>
+    <string name="dloc_clear_body">Questa azione elimina tutte le posizioni salvate. Non puoi annullarla.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">ultima posizione nota</string>
+    <string name="dloc_note_off">La posizione era disattivata</string>
+    <string name="dloc_note_permission">Nessuna autorizzazione di posizione</string>
+    <string name="dloc_note_not_found">Posizione non trovata</string>
+    <string name="dloc_no_maps">Nessuna app di mappe trovata</string>
 </resources>

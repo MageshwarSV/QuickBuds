@@ -91,6 +91,9 @@ class SettingsActivity : Activity() {
             },
             retentionRow,
             lossRow(prefs),
+            link(R.drawable.ic_place, R.string.dloc_title, R.string.dloc_sub) {
+                startActivity(Intent(this, DisconnectPlacesActivity::class.java))
+            },
             caseRow(prefs),
             batteryRow(prefs),
             lowBatteryRow(prefs),

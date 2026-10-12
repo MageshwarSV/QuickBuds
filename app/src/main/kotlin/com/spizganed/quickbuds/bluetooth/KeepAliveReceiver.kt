@@ -32,7 +32,11 @@ class KeepAliveReceiver : BroadcastReceiver() {
         }
         when (action) {
             BluetoothDevice.ACTION_ACL_CONNECTED -> recordUsage { Usage.connected(context, device, newLink = true, done = it) }
-            BluetoothDevice.ACTION_ACL_DISCONNECTED -> recordUsage { Usage.disconnected(context, device.address, done = it) }
+            // The same disconnect also saves where the phone is (Disconnect locations, off by default).
+            BluetoothDevice.ACTION_ACL_DISCONNECTED -> recordAll(
+                { Usage.disconnected(context, device.address, done = it) },
+                { com.spizganed.quickbuds.proximity.DisconnectPlaces.record(context, device.address, deviceName(device), it) }
+            )
         }
 
         if (!BudsService.backgroundAllowed(context)) {
@@ -91,6 +95,18 @@ class KeepAliveReceiver : BroadcastReceiver() {
         val pending = goAsync()
         write { pending.finish() }
     }
+
+    /** Several writes under one goAsync (a receiver gets only one): it finishes when the last one is done. */
+    private fun recordAll(vararg writes: (done: () -> Unit) -> Unit) {
+        val pending = goAsync()
+        val left = java.util.concurrent.atomic.AtomicInteger(writes.size)
+        writes.forEach { write -> write { if (left.decrementAndGet() == 0) pending.finish() } }
+    }
+
+    @android.annotation.SuppressLint("MissingPermission")
+    private fun deviceName(device: BluetoothDevice): String =
+        runCatching { (if (android.os.Build.VERSION.SDK_INT >= 30) device.alias else null) ?: device.name }
+            .getOrNull()?.takeIf { it.isNotBlank() } ?: device.address
 
     private fun fireForceConnect(context: Context, delayMs: Long) {
         val serviceIntent = Intent(context, BudsService::class.java)

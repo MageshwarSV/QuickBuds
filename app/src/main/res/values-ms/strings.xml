@@ -628,4 +628,26 @@
     <plurals name="settings_retention_value">
         <item quantity="other">%1$d hari</item>
     </plurals>
+    <string name="dloc_title">Lokasi putus sambungan</string>
+    <string name="dloc_sub">Di mana telefon anda semasa peranti terputus sambungan</string>
+    <string name="dloc_record_title">Rakam lokasi</string>
+    <string name="dloc_record_off">Mati</string>
+    <string name="dloc_record_on">Menyimpan satu tempat setiap kali peranti terputus sambungan</string>
+    <string name="dloc_needs_background">Benarkan lokasi sepanjang masa, atau ia hanya berfungsi semasa apl dibuka</string>
+    <string name="dloc_perm_title">Benarkan lokasi</string>
+    <string name="dloc_perm_body">QuickBuds menyimpan lokasi telefon anda apabila peranti terputus sambungan. Lokasi kekal pada telefon ini.</string>
+    <string name="dloc_bg_title">Sentiasa benarkan</string>
+    <string name="dloc_bg_body">Untuk merakam semasa apl ditutup, pilih \"Sentiasa benarkan\" pada skrin seterusnya.</string>
+    <string name="dloc_continue">Teruskan</string>
+    <string name="dloc_history">Sejarah</string>
+    <string name="dloc_empty">Belum ada lokasi. Satu tempat muncul di sini setiap kali peranti terputus sambungan.</string>
+    <string name="dloc_clear">Kosongkan semua</string>
+    <string name="dloc_clear_title">Padam semua lokasi?</string>
+    <string name="dloc_clear_body">Ini memadam semua lokasi yang disimpan. Anda tidak boleh membuat asal.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">kedudukan terakhir diketahui</string>
+    <string name="dloc_note_off">Lokasi dimatikan</string>
+    <string name="dloc_note_permission">Tiada kebenaran lokasi</string>
+    <string name="dloc_note_not_found">Kedudukan tidak ditemui</string>
+    <string name="dloc_no_maps">Apl peta tidak ditemui</string>
 </resources>

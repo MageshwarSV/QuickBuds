@@ -327,7 +327,7 @@ class FindNearbyActivity : Activity() {
 
     // ==================== Fast Pair broadcast ====================
 
-    /** Android 12+: Nearby devices. Before: scan results need location (the manifest asks it up to Android 11). */
+    /** Android 12+: Nearby devices. Before: scan results need location. */
     private fun scanPermission() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Manifest.permission.BLUETOOTH_SCAN
         else Manifest.permission.ACCESS_FINE_LOCATION
 

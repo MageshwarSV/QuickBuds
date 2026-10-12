@@ -625,4 +625,26 @@
         <item quantity="one">%1$d நாள்</item>
         <item quantity="other">%1$d நாட்கள்</item>
     </plurals>
+    <string name="dloc_title">துண்டிப்பு இடங்கள்</string>
+    <string name="dloc_sub">சாதனம் துண்டிக்கப்பட்டபோது உங்கள் ஃபோன் இருந்த இடம்</string>
+    <string name="dloc_record_title">இடங்களைப் பதிவுசெய்</string>
+    <string name="dloc_record_off">ஆஃப்</string>
+    <string name="dloc_record_on">சாதனம் துண்டிக்கப்படும் ஒவ்வொரு முறையும் இடத்தைச் சேமிக்கும்</string>
+    <string name="dloc_needs_background">இருப்பிடத்தை எப்போதும் அனுமதிக்கவும், இல்லையெனில் ஆப்ஸ் திறந்திருக்கும்போது மட்டுமே வேலை செய்யும்</string>
+    <string name="dloc_perm_title">இருப்பிடத்தை அனுமதி</string>
+    <string name="dloc_perm_body">சாதனம் துண்டிக்கப்படும்போது QuickBuds உங்கள் ஃபோனின் இருப்பிடத்தைச் சேமிக்கும். இருப்பிடங்கள் இந்த ஃபோனிலேயே இருக்கும்.</string>
+    <string name="dloc_bg_title">எப்போதும் அனுமதி</string>
+    <string name="dloc_bg_body">ஆப்ஸ் மூடியிருக்கும்போதும் பதிவுசெய்ய, அடுத்த திரையில் \"எப்போதும் அனுமதி\" என்பதைத் தேர்ந்தெடுக்கவும்.</string>
+    <string name="dloc_continue">தொடர்</string>
+    <string name="dloc_history">வரலாறு</string>
+    <string name="dloc_empty">இடங்கள் இன்னும் இல்லை. சாதனம் துண்டிக்கப்படும் ஒவ்வொரு முறையும் ஓர் இடம் இங்கே தோன்றும்.</string>
+    <string name="dloc_clear">அனைத்தையும் அழி</string>
+    <string name="dloc_clear_title">அனைத்து இடங்களையும் நீக்கவா?</string>
+    <string name="dloc_clear_body">சேமித்த அனைத்து இடங்களும் நீக்கப்படும். இதைத் திரும்பப்பெற முடியாது.</string>
+    <string name="dloc_accuracy">±%1$d மீ</string>
+    <string name="dloc_last_known">கடைசியாகத் தெரிந்த இடம்</string>
+    <string name="dloc_note_off">இருப்பிடம் முடக்கப்பட்டிருந்தது</string>
+    <string name="dloc_note_permission">இருப்பிட அனுமதி இல்லை</string>
+    <string name="dloc_note_not_found">இடம் கிடைக்கவில்லை</string>
+    <string name="dloc_no_maps">வரைபட ஆப்ஸ் எதுவும் இல்லை</string>
 </resources>

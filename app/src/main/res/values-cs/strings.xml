@@ -631,4 +631,26 @@
         <item quantity="many">%1$d dne</item>
         <item quantity="other">%1$d dní</item>
     </plurals>
+    <string name="dloc_title">Místa odpojení</string>
+    <string name="dloc_sub">Kde byl váš telefon, když se zařízení odpojilo</string>
+    <string name="dloc_record_title">Zaznamenávat místa</string>
+    <string name="dloc_record_off">Vypnuto</string>
+    <string name="dloc_record_on">Uloží místo při každém odpojení zařízení</string>
+    <string name="dloc_needs_background">Povolte polohu neustále, jinak funguje jen při otevřené aplikaci</string>
+    <string name="dloc_perm_title">Povolit polohu</string>
+    <string name="dloc_perm_body">QuickBuds ukládá polohu telefonu, když se zařízení odpojí. Polohy zůstanou v tomto telefonu.</string>
+    <string name="dloc_bg_title">Povolit neustále</string>
+    <string name="dloc_bg_body">Chcete-li zaznamenávat se zavřenou aplikací, vyberte na další obrazovce „Povolit neustále“.</string>
+    <string name="dloc_continue">Pokračovat</string>
+    <string name="dloc_history">Historie</string>
+    <string name="dloc_empty">Zatím žádná místa. Místo se tu objeví při každém odpojení zařízení.</string>
+    <string name="dloc_clear">Smazat vše</string>
+    <string name="dloc_clear_title">Smazat všechna místa?</string>
+    <string name="dloc_clear_body">Tím se smažou všechna uložená místa. Nelze to vrátit zpět.</string>
+    <string name="dloc_accuracy">±%1$d m</string>
+    <string name="dloc_last_known">poslední známá poloha</string>
+    <string name="dloc_note_off">Poloha byla vypnutá</string>
+    <string name="dloc_note_permission">Chybí oprávnění k poloze</string>
+    <string name="dloc_note_not_found">Poloha nenalezena</string>
+    <string name="dloc_no_maps">Nenalezena žádná aplikace map</string>
 </resources>

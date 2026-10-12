@@ -630,4 +630,26 @@
     <plurals name="settings_retention_value">
         <item quantity="other">%1$d 天</item>
     </plurals>
+    <string name="dloc_title">断开位置</string>
+    <string name="dloc_sub">设备断开连接时手机所在的位置</string>
+    <string name="dloc_record_title">记录位置</string>
+    <string name="dloc_record_off">关闭</string>
+    <string name="dloc_record_on">每次设备断开连接时保存一个位置</string>
+    <string name="dloc_needs_background">请始终允许位置信息，否则仅在应用打开时有效</string>
+    <string name="dloc_perm_title">允许位置信息</string>
+    <string name="dloc_perm_body">设备断开连接时，QuickBuds 会保存手机的位置。位置信息仅保存在这部手机上。</string>
+    <string name="dloc_bg_title">始终允许</string>
+    <string name="dloc_bg_body">要在应用关闭时也能记录，请在下一个屏幕上选择“始终允许”。</string>
+    <string name="dloc_continue">继续</string>
+    <string name="dloc_history">历史记录</string>
+    <string name="dloc_empty">暂无位置。每次设备断开连接时，这里会出现一个位置。</string>
+    <string name="dloc_clear">全部清除</string>
+    <string name="dloc_clear_title">删除所有位置？</string>
+    <string name="dloc_clear_body">这会删除所有已保存的位置，且无法撤消。</string>
+    <string name="dloc_accuracy">±%1$d 米</string>
+    <string name="dloc_last_known">上次已知位置</string>
+    <string name="dloc_note_off">位置信息已关闭</string>
+    <string name="dloc_note_permission">没有位置权限</string>
+    <string name="dloc_note_not_found">未找到位置</string>
+    <string name="dloc_no_maps">未找到地图应用</string>
 </resources>
