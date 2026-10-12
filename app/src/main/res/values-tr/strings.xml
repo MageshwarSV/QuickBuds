@@ -322,6 +322,7 @@
     <string name="model_auto">Otomatik</string>
     <string name="model_detected">Algılandı: %1$s</string>
     <string name="model_not_detected">Henüz algılanmadı</string>
+    <string name="model_last_detected">Son algılanan: %1$s (bağlı değil)</string>
     <string name="no_buds_paired">Eşlenmiş OPPO, OnePlus veya realme kulaklık bulunamadı. Önce Bluetooth ayarlarından eşleyin.</string>
     <!-- Hearing profile (HeyMelody's "Golden Sound", renamed: not our trademark) and the earbud fit test ([VENDOR] wording where HeyMelody has it) -->
     <string name="row_golden_title">İşitme profili</string>

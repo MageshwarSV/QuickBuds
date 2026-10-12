@@ -322,6 +322,7 @@
     <string name="model_auto">Automat</string>
     <string name="model_detected">Detectat: %1$s</string>
     <string name="model_not_detected">Nedetectat încă</string>
+    <string name="model_last_detected">Ultima detectare: %1$s (neconectat)</string>
     <string name="no_buds_paired">Nu s-au găsit căști OPPO, OnePlus sau realme asociate. Asociază-le mai întâi din setările Bluetooth.</string>
     <!-- Hearing profile (HeyMelody's "Golden Sound", renamed: not our trademark) and the earbud fit test ([VENDOR] wording where HeyMelody has it) -->
     <string name="row_golden_title">Profil auditiv</string>

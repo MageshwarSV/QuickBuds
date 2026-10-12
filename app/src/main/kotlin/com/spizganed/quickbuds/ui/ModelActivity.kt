@@ -72,9 +72,17 @@ class ModelActivity : Activity() {
 
         val auto = SettingRowFactory.splitList(this)
         val detected = ModelCatalog.detected(this)?.name
-        SettingRowFactory.addSplit(auto, row(null, getString(R.string.model_auto),
-            if (detected != null) getString(R.string.model_detected, detected) else getString(R.string.model_not_detected)
-        ) { ModelCatalog.setManual(this, null) })
+        // Detection is for the OnePlus / OPPO / realme buds QuickBuds talks to, not other brands: while those are
+        // not connected, the name is the last one read. Was: "Detected" next to another brand's connected earbuds.
+        val budsConnected = com.spizganed.quickbuds.widget.WidgetStateStore.read(this).connected
+        val p = getSharedPreferences(ThemeRes.PREFS_NAME, MODE_PRIVATE)
+        com.spizganed.quickbuds.bluetooth.PacketLogger.log("MODEL: auto id=${p.getString(com.spizganed.quickbuds.protocol.Capabilities.KEY_PRODUCT_ID, null)} " +
+            "name=${p.getString(ModelCatalog.KEY_DEVICE_NAME, null)} manual=${ModelCatalog.manual(this)} -> $detected, connected=$budsConnected")
+        SettingRowFactory.addSplit(auto, row(null, getString(R.string.model_auto), when {
+            detected == null -> getString(R.string.model_not_detected)
+            budsConnected -> getString(R.string.model_detected, detected)
+            else -> getString(R.string.model_last_detected, detected)
+        }) { ModelCatalog.setManual(this, null) })
         root.addView(auto)
 
         for ((brand, label) in listOf("OnePlus" to R.string.model_brand_oneplus, "OPPO" to R.string.model_brand_oppo,

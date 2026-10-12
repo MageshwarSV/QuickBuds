@@ -15,19 +15,20 @@ import kotlin.math.abs
  * Each battery byte: bit 7 charging, bits 0-6 the level 0-100; 0x7F means unknown.
  *
  * The advertisement does not say WHOSE earbuds sent it: that is hidden in the account key filter, which only
- * Google Play services can test. So [Picker] trusts a broadcast only when nothing else could have sent it.
+ * Google Play services can test. So [Picker] trusts a broadcast only when its checks leave one that fits.
  */
 object FastPairBattery {
 
     /**
      * Whether to listen at all: one other device connected ([trackedKinds]), earbuds or of unknown kind (a neckband,
-     * headphones or a speaker has no left, right or case), no supported buds broadcasting next to it, the card on.
+     * headphones or a speaker has no left, right or case), the card on. Supported buds connected next to it are no
+     * reason to stop: [Picker] sets their own broadcast aside by their levels. Was: no listening at all then.
      */
-    fun allowed(trackedKinds: List<DeviceCatalog.Kind?>, supportedBudsConnected: Boolean, cardOn: Boolean): Boolean {
+    fun allowed(trackedKinds: List<DeviceCatalog.Kind?>, cardOn: Boolean): Boolean {
         // Not singleOrNull(): an unknown kind is null too.
         if (trackedKinds.size != 1) return false
         val only = trackedKinds[0]
-        return (only == null || only == DeviceCatalog.Kind.TWS) && !supportedBudsConnected && cardOn
+        return (only == null || only == DeviceCatalog.Kind.TWS) && cardOn
     }
 
     /** Levels 0-100, -1 when the earbuds do not report that part. */
@@ -62,21 +63,23 @@ object FastPairBattery {
 
     /**
      * The safeguards. A broadcast is used only when:
-     *  - it is the only Fast Pair battery broadcast heard nearby in the last [windowMs] (a second set of earbuds
-     *    around, someone else's, makes it ambiguous: nothing is shown);
      *  - it is strong ([minRssi] dBm or more): the connected earbuds are close to the phone;
-     *  - it reports both buds: earbuds always do, a lone side is not a pair of earbuds;
-     *  - the connected earbuds have reported their own standard level, and a bud's level is within [tolerance]
-     *    of it. Without that level there is nothing to check the broadcast against: it is not used.
-     * Otherwise [pick] returns null and the card keeps the single standard level.
+     *  - it reports a bud, and either the other bud or the case: a lone bud level could be a neckband's;
+     *  - it is not the supported buds' own broadcast (QuickBuds reads their exact levels: [own]);
+     *  - the connected earbuds have reported their own standard level, and a reported bud is within [tolerance]
+     *    of it. Without that level there is nothing to check the broadcast against: it is not used;
+     *  - one broadcast is left after these checks, or one is [clearMarginDb] stronger than every other.
+     * Otherwise [pick] returns null and the card keeps the single standard level. [decide] also says why.
      *
-     * Was: the cross-check only when a standard level was known, and one side was enough. A neckband that had not
-     * reported its level yet was given another device's broadcast ("R=70").
+     * Was: both buds required (a pair with one bud in the case, "L=-1 R=70 C=14", showed nothing), and any second
+     * Fast Pair broadcast nearby, the supported buds' too, stopped it. Before that: the cross-check only when a
+     * standard level was known, and one side was enough; a neckband was given another device's "R=70".
      */
     class Picker(
         private val windowMs: Long = 30_000,
         private val minRssi: Int = -75,
-        private val tolerance: Int = 15
+        private val tolerance: Int = 15,
+        private val clearMarginDb: Int = 10
     ) {
         private class Heard(val rssi: Int, val levels: Levels, val atMs: Long)
 
@@ -87,15 +90,33 @@ object FastPairBattery {
             heard[address] = Heard(rssi, levels, nowMs)
         }
 
-        fun pick(nowMs: Long, standardLevel: Int?): Levels? {
+        /** The levels to show (or null) and why, for the log. */
+        data class Verdict(val levels: Levels?, val reason: String)
+
+        fun pick(nowMs: Long, standardLevel: Int?, own: Levels? = null): Levels? = decide(nowMs, standardLevel, own).levels
+
+        fun decide(nowMs: Long, standardLevel: Int?, own: Levels? = null): Verdict {
             heard.values.removeAll { nowMs - it.atMs > windowMs }
-            val only = heard.values.singleOrNull() ?: return null
-            if (only.rssi < minRssi) return null
-            val l = only.levels
-            if (l.left < 0 || l.right < 0) return null
-            if (standardLevel == null || standardLevel <= 0) return null
-            if (listOf(l.left, l.right).none { abs(it - standardLevel) <= tolerance }) return null
-            return l
+            if (heard.isEmpty()) return Verdict(null, "no broadcast heard")
+            if (standardLevel == null || standardLevel <= 0) return Verdict(null, "no standard level to check against")
+            val ok = heard.values.filter { h ->
+                val l = h.levels
+                val buds = listOf(l.left, l.right).filter { it >= 0 }
+                h.rssi >= minRssi && buds.isNotEmpty() && (buds.size == 2 || l.case >= 0) &&
+                    !isOwn(l, own) && buds.any { abs(it - standardLevel) <= tolerance }
+            }.sortedByDescending { it.rssi }
+            val heardText = heard.values.joinToString(" ") { "[${it.rssi} dBm L=${it.levels.left} R=${it.levels.right} C=${it.levels.case}]" }
+            return when {
+                ok.isEmpty() -> Verdict(null, "none fits (standard $standardLevel): $heardText")
+                ok.size == 1 || ok[0].rssi - ok[1].rssi >= clearMarginDb -> Verdict(ok[0].levels, "used ${ok[0].rssi} dBm of: $heardText")
+                else -> Verdict(null, "${ok.size} fit, none clearly closest: $heardText")
+            }
+        }
+
+        /** The supported buds' own broadcast: both buds within 1 of what they report to QuickBuds. */
+        private fun isOwn(l: Levels, own: Levels?): Boolean {
+            if (own == null || own.left < 0 || own.right < 0) return false
+            return l.left >= 0 && l.right >= 0 && abs(l.left - own.left) <= 1 && abs(l.right - own.right) <= 1
         }
 
         fun clear() = heard.clear()

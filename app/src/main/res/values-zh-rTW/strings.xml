@@ -324,6 +324,7 @@
     <string name="model_auto">自動</string>
     <string name="model_detected">已識別：%1$s</string>
     <string name="model_not_detected">尚未識別</string>
+    <string name="model_last_detected">上次識別：%1$s（未連線）</string>
     <string name="no_buds_paired">找不到已配對的 OPPO、OnePlus 或 realme 耳機。請先在藍牙設定中配對。</string>
     <!-- Hearing profile (HeyMelody's "Golden Sound", renamed: not our trademark) and the earbud fit test ([VENDOR] wording where HeyMelody has it) -->
     <string name="row_golden_title">聽力設定</string>

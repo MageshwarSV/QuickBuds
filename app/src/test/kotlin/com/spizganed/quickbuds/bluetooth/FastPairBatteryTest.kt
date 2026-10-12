@@ -54,11 +54,50 @@ class FastPairBatteryTest {
         assertEquals(ours, p.pick(1_000, standardLevel = 75))
     }
 
-    @Test fun twoBroadcastersNearbyIsAmbiguous() {
+    @Test fun twoBroadcastersThatBothFitAndAreEquallyCloseAreAmbiguous() {
         val p = FastPairBattery.Picker()
         p.onAdvert("A", -55, ours, 0)
-        p.onAdvert("B", -60, theirs, 500)
-        assertNull(p.pick(1_000, standardLevel = null))
+        p.onAdvert("B", -60, Levels(78, 74, 40, false, false, false), 500)
+        assertNull(p.pick(1_000, standardLevel = 76))
+    }
+
+    @Test fun aSecondBroadcastThatDoesNotFitIsNoProblem() {
+        val p = FastPairBattery.Picker()
+        p.onAdvert("A", -55, ours, 0)
+        p.onAdvert("B", -60, theirs, 500)   // someone else's, 20-25%
+        assertEquals(ours, p.pick(1_000, standardLevel = 75))
+    }
+
+    @Test fun aClearlyCloserBroadcastWins() {
+        val p = FastPairBattery.Picker()
+        p.onAdvert("A", -45, ours, 0)
+        p.onAdvert("B", -70, Levels(78, 74, 40, false, false, false), 500)
+        assertEquals(ours, p.pick(1_000, standardLevel = 76))
+    }
+
+    @Test fun oneBudInTheCaseWithTheCaseReportedIsUsed() {
+        // boAt Airdopes 800, 2026-10-13: Android's own record said left unknown, right 70, case 14.
+        val boat = Levels(-1, 70, 14, false, false, false)
+        val p = FastPairBattery.Picker()
+        p.onAdvert("A", -50, boat, 0)
+        assertEquals(boat, p.pick(1_000, standardLevel = 70))
+    }
+
+    @Test fun theSupportedBudsOwnBroadcastIsSetAside() {
+        val nord = Levels(80, 80, 100, false, false, false)   // what QuickBuds reads from them over RFCOMM
+        val boat = Levels(70, 72, 14, false, false, false)
+        val p = FastPairBattery.Picker()
+        p.onAdvert("N", -40, nord, 0)
+        p.onAdvert("B", -55, boat, 0)
+        assertEquals(boat, p.pick(1_000, standardLevel = 75, own = nord))
+    }
+
+    @Test fun theVerdictSaysWhy() {
+        val p = FastPairBattery.Picker()
+        assertEquals("no broadcast heard", p.decide(0, 70).reason)
+        p.onAdvert("A", -50, ours, 0)
+        assertTrue(p.decide(1_000, null).reason.startsWith("no standard level"))
+        assertTrue(p.decide(1_000, 20).reason.startsWith("none fits"))
     }
 
     @Test fun aFarBroadcastIsNotTrusted() {
@@ -88,22 +127,21 @@ class FastPairBatteryTest {
     }
 
     @Test fun listensForOnePairOfEarbudsOnly() {
-        assertTrue(FastPairBattery.allowed(listOf(DeviceCatalog.Kind.TWS), supportedBudsConnected = false, cardOn = true))
-        assertTrue(FastPairBattery.allowed(listOf(null), supportedBudsConnected = false, cardOn = true))
+        assertTrue(FastPairBattery.allowed(listOf(DeviceCatalog.Kind.TWS), cardOn = true))
+        assertTrue(FastPairBattery.allowed(listOf(null), cardOn = true))
     }
 
     @Test fun noListeningForANeckbandHeadphonesOrASpeaker() {
         for (k in listOf(DeviceCatalog.Kind.NECKBAND, DeviceCatalog.Kind.HEADPHONES, DeviceCatalog.Kind.SPEAKER)) {
-            assertFalse(k.name, FastPairBattery.allowed(listOf(k), supportedBudsConnected = false, cardOn = true))
+            assertFalse(k.name, FastPairBattery.allowed(listOf(k), cardOn = true))
         }
     }
 
     @Test fun noListeningWhenItCouldMislead() {
         val tws = DeviceCatalog.Kind.TWS
-        assertFalse(FastPairBattery.allowed(listOf(tws, tws), false, true))   // whose broadcast?
-        assertFalse(FastPairBattery.allowed(emptyList(), false, true))
-        assertFalse(FastPairBattery.allowed(listOf(tws), supportedBudsConnected = true, cardOn = true))
-        assertFalse(FastPairBattery.allowed(listOf(tws), supportedBudsConnected = false, cardOn = false))
+        assertFalse(FastPairBattery.allowed(listOf(tws, tws), true))   // whose broadcast?
+        assertFalse(FastPairBattery.allowed(emptyList(), true))
+        assertFalse(FastPairBattery.allowed(listOf(tws), cardOn = false))
     }
 
     @Test fun aOneSidedBroadcastIsNotAPairOfEarbuds() {

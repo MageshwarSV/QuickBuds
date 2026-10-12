@@ -62,19 +62,37 @@ class OtherEarbudsMonitor(private val context: Context) {
     /** True while the supported buds (models.json) are connected: they broadcast Fast Pair too, near the phone. */
     var supportedBudsConnected: () -> Boolean = { false }
 
+    init {
+        // Their broadcast carries the levels QuickBuds reads from them: the picker sets it aside by those.
+        fastPair.ownLevels = {
+            if (!supportedBudsConnected()) null
+            else com.spizganed.quickbuds.widget.WidgetStateStore.read(context).let {
+                FastPairBattery.Levels(it.leftBattery, it.rightBattery, it.caseBattery, false, false, false)
+            }
+        }
+    }
+
     /**
      * Fast Pair listening runs only while it can help and cannot mislead: one other device connected, which is
-     * earbuds (or of unknown kind; a neckband, headphones or a speaker has no left, right or case), with no supported
-     * buds broadcasting next to it, and the battery card on.
+     * earbuds (or of unknown kind; a neckband, headphones or a speaker has no left, right or case), and the battery
+     * card on. Supported buds next to it are set aside by their levels ([FastPairScanner.ownLevels]).
      */
     private fun updateFastPair() {
         // For this check a hands-free or hi-fi device of unknown kind is not earbuds: no scan for a car.
         val kinds = tracked.values.map { if (it.ambiguous && it.kind == null) DeviceCatalog.Kind.HEADPHONES else it.kind }
-        if (FastPairBattery.allowed(kinds, supportedBudsConnected(), BatteryCard.enabled(context))) {
+        val listen = FastPairBattery.allowed(kinds, BatteryCard.enabled(context))
+        val why = "${kinds.size} other device(s) ${kinds.joinToString()}, card ${if (BatteryCard.enabled(context)) "on" else "off"}"
+        if (listen != fastPairListening) {
+            fastPairListening = listen
+            PacketLogger.log("OTHER EARBUDS: Fast Pair battery ${if (listen) "listening" else "not listening"} ($why)")
+        }
+        if (listen) {
             fastPair.standardLevel = tracked.values.first().level.takeIf { it > 0 }
             fastPair.start()
         } else fastPair.stop()
     }
+
+    private var fastPairListening = false
 
     private val tracked = LinkedHashMap<String, Tracked>()
     private val handler = Handler(Looper.getMainLooper())
@@ -142,7 +160,6 @@ class OtherEarbudsMonitor(private val context: Context) {
 
     /** The supported buds' link changed: Fast Pair listening may have to stop or may start. */
     fun onSupportedBudsChanged() {
-        if (supportedBudsConnected()) tracked.values.forEach { if (it.parts != null) { it.parts = null; show(it) } }
         updateFastPair()
     }
 

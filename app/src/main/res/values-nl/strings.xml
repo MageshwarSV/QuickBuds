@@ -322,6 +322,7 @@
     <string name="model_auto">Automatisch</string>
     <string name="model_detected">Herkend: %1$s</string>
     <string name="model_not_detected">Nog niet herkend</string>
+    <string name="model_last_detected">Laatst herkend: %1$s (niet verbonden)</string>
     <string name="no_buds_paired">Geen gekoppelde OPPO-, OnePlus- of realme-oordopjes gevonden. Koppel ze eerst in de Bluetooth-instellingen.</string>
     <!-- Hearing profile (HeyMelody's "Golden Sound", renamed: not our trademark) and the earbud fit test ([VENDOR] wording where HeyMelody has it) -->
     <string name="row_golden_title">Gehoorprofiel</string>

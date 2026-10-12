@@ -429,7 +429,14 @@ class BudsService : Service(), BudsConnectionManager.Listener {
                 .setShowWhen(false)
                 .build()
         }
-        startForeground(1, notification)
+        // Android 12+ refuses the foreground from the background (seen on Android 16: a sticky restart). Was: a
+        // crash. Is: the service stops; the next app start or buds connect starts it again.
+        try {
+            startForeground(1, notification)
+        } catch (e: IllegalStateException) {
+            PacketLogger.error("service foreground refused", e)
+            stopSelf()
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder {

@@ -322,6 +322,7 @@
     <string name="model_auto">Automaticky</string>
     <string name="model_detected">Rozpoznáno: %1$s</string>
     <string name="model_not_detected">Zatím nerozpoznáno</string>
+    <string name="model_last_detected">Naposledy rozpoznáno: %1$s (nepřipojeno)</string>
     <string name="no_buds_paired">Nebyla nalezena žádná spárovaná sluchátka OPPO, OnePlus ani realme. Nejprve je spárujte v nastavení Bluetooth.</string>
     <!-- Hearing profile (HeyMelody's "Golden Sound", renamed: not our trademark) and the earbud fit test ([VENDOR] wording where HeyMelody has it) -->
     <string name="row_golden_title">Sluchový profil</string>

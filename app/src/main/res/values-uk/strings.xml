@@ -322,6 +322,7 @@
     <string name="model_auto">Автоматично</string>
     <string name="model_detected">Визначено: %1$s</string>
     <string name="model_not_detected">Ще не визначено</string>
+    <string name="model_last_detected">Останнє визначено: %1$s (не підключено)</string>
     <string name="no_buds_paired">Не знайдено спарених навушників OPPO, OnePlus чи realme. Спершу спаруйте їх у налаштуваннях Bluetooth.</string>
     <!-- Hearing profile (HeyMelody's "Golden Sound", renamed: not our trademark) and the earbud fit test ([VENDOR] wording where HeyMelody has it) -->
     <string name="row_golden_title">Профіль слуху</string>

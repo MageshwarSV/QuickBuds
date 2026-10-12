@@ -324,6 +324,7 @@
     <string name="model_auto">Otomatis</string>
     <string name="model_detected">Terdeteksi: %1$s</string>
     <string name="model_not_detected">Belum terdeteksi</string>
+    <string name="model_last_detected">Terakhir terdeteksi: %1$s (tidak terhubung)</string>
     <string name="no_buds_paired">Tidak ada earbud OPPO, OnePlus, atau realme yang dipasangkan. Pasangkan dulu di pengaturan Bluetooth.</string>
     <!-- Hearing profile (HeyMelody's "Golden Sound", renamed: not our trademark) and the earbud fit test ([VENDOR] wording where HeyMelody has it) -->
     <string name="row_golden_title">Profil pendengaran</string>

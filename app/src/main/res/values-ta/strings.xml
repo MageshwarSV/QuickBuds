@@ -320,6 +320,7 @@
     <string name="model_auto">தானியங்கி</string>
     <string name="model_detected">கண்டறியப்பட்டது: %1$s</string>
     <string name="model_not_detected">இன்னும் கண்டறியப்படவில்லை</string>
+    <string name="model_last_detected">கடைசியாக கண்டறியப்பட்டது: %1$s (இணைக்கப்படவில்லை)</string>
     <string name="no_buds_paired">இணைக்கப்பட்ட OPPO, OnePlus அல்லது realme இயர்பட்ஸ் எதுவும் இல்லை. முதலில் Bluetooth அமைப்புகளில் இணைக்கவும்.</string>
     <string name="row_golden_title">செவித்திறன் சுயவிவரம்</string>
     <string name="row_golden_sub">உங்கள் செவித்திறன் சோதனைக்கு ஏற்ப அமைந்த ஒலி</string>

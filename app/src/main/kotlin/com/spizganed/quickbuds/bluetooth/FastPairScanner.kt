@@ -30,6 +30,12 @@ class FastPairScanner(private val context: Context, private val onLevels: (FastP
     /** The standard level of the connected earbuds, for the picker's cross-check. */
     var standardLevel: Int? = null
 
+    /** The supported buds' own levels while they are connected: their broadcast is set aside. */
+    var ownLevels: () -> FastPairBattery.Levels? = { null }
+
+    /** The last verdict's kind, logged when it changes (not every 45 s). */
+    private var lastLogged: String? = null
+
     private val callback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             val data = result.scanRecord?.getServiceData(FAST_PAIR) ?: return
@@ -42,7 +48,13 @@ class FastPairScanner(private val context: Context, private val onLevels: (FastP
         override fun run() {
             if (!running) return
             startWindow()
-            handler.postDelayed({ stopWindow(); onLevels(picker.pick(SystemClock.elapsedRealtime(), standardLevel)) }, LISTEN_MS)
+            handler.postDelayed({
+                stopWindow()
+                val v = picker.decide(SystemClock.elapsedRealtime(), standardLevel, ownLevels())
+                val kind = v.reason.substringBefore(':') + (v.levels?.let { " L=${it.left} R=${it.right} C=${it.case}" } ?: "")
+                if (kind != lastLogged) { lastLogged = kind; PacketLogger.log("FASTPAIR: ${v.reason}") }
+                onLevels(v.levels)
+            }, LISTEN_MS)
             handler.postDelayed(this, EVERY_MS)
         }
     }
@@ -58,6 +70,7 @@ class FastPairScanner(private val context: Context, private val onLevels: (FastP
         handler.removeCallbacksAndMessages(null)
         stopWindow()
         picker.clear()
+        lastLogged = null
     }
 
     @SuppressLint("MissingPermission")
