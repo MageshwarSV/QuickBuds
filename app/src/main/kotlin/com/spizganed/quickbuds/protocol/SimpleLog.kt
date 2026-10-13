@@ -43,6 +43,11 @@ object SimpleLog {
             msg.startsWith("Giving up") || msg.startsWith("All connection methods failed") -> problem("Could not connect to the buds")
             msg.startsWith("Bridge on") -> link("Bridge on")
             msg == "Bridge off" -> link("Bridge off")
+            // Which build wrote the lines that follow, and which device is "the buds" and why.
+            msg.startsWith("APP: ") -> link(msg.removePrefix("APP: "))
+            msg.startsWith("BUDS: ") -> link("Buds: " + msg.removePrefix("BUDS: "))
+            msg.startsWith("OTHER EARBUDS: ") -> got("Other earbuds: " + msg.removePrefix("OTHER EARBUDS: "))
+            msg.startsWith("FASTPAIR: ") -> got("Fast Pair battery: " + msg.removePrefix("FASTPAIR: "))
             msg.startsWith("PRODUCT ID:") -> got("Buds: " + (Regex("model: ([^,]+)").find(msg)?.groupValues?.get(1) ?: "unknown model"))
             msg.startsWith("FIRMWARE:") -> got("Firmware version " + after.substringBefore(" "))
             msg.startsWith("WEAR ") -> got(wear(after))

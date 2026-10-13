@@ -96,6 +96,13 @@ class QuickBudsApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Every log from here on is this version's: a log sent from another phone says which build wrote it.
+        com.spizganed.quickbuds.bluetooth.PacketLogger.init(this)
+        val code = runCatching {
+            androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(packageManager.getPackageInfo(packageName, 0))
+        }.getOrDefault(-1L)
+        com.spizganed.quickbuds.bluetooth.PacketLogger.log("APP: QuickBuds ${com.spizganed.quickbuds.ui.UpdateChecker.installed(this)} " +
+            "($code) started, Android ${Build.VERSION.RELEASE}, ${Build.MANUFACTURER} ${Build.MODEL}")
         // A preset change rebuilds every open activity when it comes back to the front,
         // because colours are applied at inflation (ThemeRes.select), not afterwards.
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {

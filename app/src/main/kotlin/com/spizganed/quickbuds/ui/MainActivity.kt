@@ -256,7 +256,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
             manager.addListener(this@MainActivity)
             onFeatureStates(manager.featureStates)
             isBound = true
-            connectDirectly()
+            connectOnOpen()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -1315,6 +1315,27 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
                         .setData(Uri.parse("package:$packageName"))
                 )
             }
+        }
+    }
+
+    /**
+     * Opening the app connects the buds, unless they are not connected to the phone while another audio device
+     * is: the user listens to that one. Was: a connect each time, which failed (realme buds paired but off, a boAt
+     * in use) and retried three times, or would have pulled the audio away from the other earbuds.
+     */
+    @SuppressLint("MissingPermission")
+    private fun connectOnOpen() {
+        val buds = BudsDevice.find(this)
+        if (buds == null) return connectDirectly()
+        com.spizganed.quickbuds.bluetooth.ConnectedAudio.query(this) { connected ->
+            if (isFinishing || isDestroyed) return@query
+            val others = connected?.values?.filter { it.address != buds.address }.orEmpty()
+            if (connected != null && buds.address !in connected && others.isNotEmpty()) {
+                com.spizganed.quickbuds.bluetooth.PacketLogger.log("BUDS: ${buds.name} not connected, " +
+                    "${others.joinToString { runCatching { it.name }.getOrNull() ?: it.address }} in use: no automatic connect")
+                return@query
+            }
+            connectDirectly()
         }
     }
 

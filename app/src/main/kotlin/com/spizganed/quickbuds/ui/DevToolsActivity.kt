@@ -81,7 +81,9 @@ class DevToolsActivity : Activity() {
         // Same frame as Settings: screen, title, then cards. Labels stay English by design.
         val dp = { v: Float -> ThemeRes.dp(this, v) }
         val root = SettingRowFactory.screen(this)
-        root.addView(SettingRowFactory.title(this, R.string.action_dev_tools))
+        root.addView(SettingRowFactory.title(this, R.string.action_dev_tools).apply {
+            text = "${getString(R.string.action_dev_tools)} · ${UpdateChecker.installed(this@DevToolsActivity)}"
+        })
 
         tabs = AncSegmentedView(this, listOf("Simple", "Detailed")).apply {
             selected = 0
