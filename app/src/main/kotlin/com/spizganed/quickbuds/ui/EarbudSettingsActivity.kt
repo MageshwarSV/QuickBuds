@@ -326,111 +326,22 @@ class EarbudSettingsActivity : Activity(), BudsConnectionManager.Listener {
         })
     }
 
-    // --- Calls: auto-answer after a delay while the earbuds are connected (any model: the phone answers) ---
+    // --- Calls: auto-answer has its own screen (any earbuds: the phone answers), also reached from Settings ---
 
-    private var answerSwitch: android.widget.Switch? = null
-    private var answerSub: TextView? = null
-    private var delaySub: TextView? = null
-    private var permAsked = false
-
-    private fun prefs() = getSharedPreferences(ThemeRes.PREFS_NAME, Context.MODE_PRIVATE)
+    private var callsSub: TextView? = null
 
     private fun calls(root: LinearLayout) {
         root.addView(SettingRowFactory.sectionLabel(this, R.string.auto_answer_section))
-        val sw = SettingRowFactory.buildSwitch(this, prefs().getBoolean(com.spizganed.quickbuds.calls.AutoAnswer.KEY_ENABLED, false) &&
-            com.spizganed.quickbuds.calls.AutoAnswer.permitted(this))
-        answerSwitch = sw
-        val row = SettingRowFactory.build(this, R.drawable.ic_earbud, R.string.auto_answer_title, R.string.auto_answer_off, sw) {
-            sw.performClick()
+        val row = SettingRowFactory.build(this, R.drawable.ic_earbud, R.string.auto_answer_title, 0, SettingRowFactory.buildChevron(this)) {
+            startActivity(Intent(this, AutoAnswerActivity::class.java))
         }
-        answerSub = SettingRowFactory.subtitle(this, row)
-        sw.setOnCheckedChangeListener(answerListener)
-        val delayRow = SettingRowFactory.build(this, 0, R.string.auto_answer_delay_title, 0, SettingRowFactory.buildChevron(this)) {
-            BottomSheetDialog(this)
-                .title(getString(R.string.auto_answer_delay_title))
-                .items(com.spizganed.quickbuds.calls.AutoAnswer.DELAYS.map { s ->
-                    BottomSheetDialog.Item(getString(R.string.auto_answer_seconds, s),
-                        s == com.spizganed.quickbuds.calls.AutoAnswer.delaySeconds(this)) {
-                        prefs().edit().putInt(com.spizganed.quickbuds.calls.AutoAnswer.KEY_DELAY, s).apply()
-                        paintAnswer()
-                    }
-                })
-                .show()
-        }
-        delaySub = SettingRowFactory.subtitle(this, delayRow)
-        root.addView(cardView().apply {
-            addView(row)
-            addView(SettingRowFactory.buildDivider(this@EarbudSettingsActivity))
-            addView(delayRow)
-        })
-        paintAnswer()
+        callsSub = SettingRowFactory.subtitle(this, row)
+        root.addView(cardView().apply { addView(row) })
     }
 
-    /** The switch: on asks for the two permissions first; it turns on only once both are allowed. */
-    private val answerListener = android.widget.CompoundButton.OnCheckedChangeListener { _, on ->
-        if (on && !com.spizganed.quickbuds.calls.AutoAnswer.permitted(this)) {
-            quietSwitch(false)
-            askPhonePermissions()
-            return@OnCheckedChangeListener
-        }
-        prefs().edit().putBoolean(com.spizganed.quickbuds.calls.AutoAnswer.KEY_ENABLED, on).apply()
-        paintAnswer()
-    }
-
-    /** Sets the switch without running its listener. */
-    private fun quietSwitch(on: Boolean) {
-        val sw = answerSwitch ?: return
-        sw.setOnCheckedChangeListener(null)
-        sw.isChecked = on
-        sw.setOnCheckedChangeListener(answerListener)
-    }
-
-    /** The subtitles: what it does, the delay, or why it cannot run (background service off). */
-    private fun paintAnswer() {
-        val on = prefs().getBoolean(com.spizganed.quickbuds.calls.AutoAnswer.KEY_ENABLED, false) &&
-            com.spizganed.quickbuds.calls.AutoAnswer.permitted(this)
-        val delay = com.spizganed.quickbuds.calls.AutoAnswer.delaySeconds(this)
-        answerSub?.text = when {
-            on && !BudsService.backgroundAllowed(this) -> getString(R.string.settings_loss_needs_background)
-            on -> getString(R.string.auto_answer_on, delay)
-            else -> getString(R.string.auto_answer_off)
-        }
-        delaySub?.text = getString(R.string.auto_answer_seconds, delay)
-    }
-
-    /** Back from Android's settings: the permissions may have changed. */
     override fun onResume() {
         super.onResume()
-        if (answerSwitch != null) {
-            quietSwitch(prefs().getBoolean(com.spizganed.quickbuds.calls.AutoAnswer.KEY_ENABLED, false) &&
-                com.spizganed.quickbuds.calls.AutoAnswer.permitted(this))
-            paintAnswer()
-        }
-    }
-
-    private fun askPhonePermissions() {
-        val missing = com.spizganed.quickbuds.calls.AutoAnswer.PERMISSIONS
-            .filter { checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED }
-        // Refused for good before: Android shows no dialog any more, so explain and open the app's settings.
-        if (permAsked && missing.none { shouldShowRequestPermissionRationale(it) }) return showPermissionHelp()
-        permAsked = true
-        requestPermissions(missing.toTypedArray(), REQUEST_PHONE)
-    }
-
-    private fun showPermissionHelp() = ConfirmDialog.show(this, getString(R.string.auto_answer_perm_title),
-        getString(R.string.auto_answer_perm_body), getString(R.string.perm_action), cancelRes = R.string.dialog_close) {
-        startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-            android.net.Uri.fromParts("package", packageName, null)))
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode != REQUEST_PHONE) return
-        if (com.spizganed.quickbuds.calls.AutoAnswer.permitted(this)) {
-            prefs().edit().putBoolean(com.spizganed.quickbuds.calls.AutoAnswer.KEY_ENABLED, true).apply()
-            quietSwitch(true)
-        } else showPermissionHelp()
-        paintAnswer()
+        callsSub?.text = AutoAnswerActivity.summary(this)
     }
 
     private fun cardView() = SettingRowFactory.card(this)
@@ -513,7 +424,4 @@ class EarbudSettingsActivity : Activity(), BudsConnectionManager.Listener {
         chargingLeft: Boolean, chargingCase: Boolean, chargingRight: Boolean
     ) {}
 
-    private companion object {
-        const val REQUEST_PHONE = 61
-    }
 }

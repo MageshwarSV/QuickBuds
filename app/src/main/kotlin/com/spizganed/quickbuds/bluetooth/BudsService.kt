@@ -134,6 +134,7 @@ class BudsService : Service(), BudsConnectionManager.Listener {
             }
             CaseReminderMonitor.KEY_ENABLED -> caseReminder?.onSettingsChanged()
             com.spizganed.quickbuds.calls.AutoAnswer.KEY_ENABLED, com.spizganed.quickbuds.calls.AutoAnswer.KEY_DELAY -> autoAnswer?.update()
+            com.spizganed.quickbuds.proximity.DisconnectPlaces.KEY_ENABLED -> syncLocationBuffer()
             BatteryCard.KEY_ENABLED -> { BatteryCard.update(this); other?.onSettingsChanged(); discoverOther() }
             LowBatteryAlert.KEY_ENABLED -> {
                 if (!LowBatteryAlert.enabled(this)) LowBatteryAlert.turnedOff(this)
@@ -159,6 +160,7 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         caseReminder = CaseReminderMonitor(this)
         other = OtherEarbudsMonitor(this).also { it.supportedBudsConnected = { manager?.isConnected() == true } }
         autoAnswer = com.spizganed.quickbuds.calls.AutoAnswerMonitor(this).also { it.update() }
+        ConnectedDevices.addListener(connectedDevicesListener)
         // A new version on GitHub: a notification, also with the app closed (an hourly job, kept by Android).
         com.spizganed.quickbuds.ui.UpdateJob.sync(this)
 
@@ -458,6 +460,8 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         try { unregisterReceiver(linkReceiver) } catch (_: Exception) {}
         other?.destroy()
         autoAnswer?.stop()
+        ConnectedDevices.removeListener(connectedDevicesListener)
+        com.spizganed.quickbuds.proximity.LocationBuffer.sync(this, anyConnected = false)
         getSharedPreferences(ThemeRes.PREFS_NAME, MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(prefsListener)
         proximity?.destroy()
         caseReminder?.destroy()
@@ -485,7 +489,17 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         BatteryCard.update(this)
     }
 
+    /**
+     * Disconnect locations: recent positions are kept while any earbuds are connected (ours or another brand's),
+     * so a disconnect can be placed where the phone was while still connected.
+     */
+    private fun syncLocationBuffer() = com.spizganed.quickbuds.proximity.LocationBuffer.sync(this,
+        manager?.isConnected() == true || ConnectedDevices.all().isNotEmpty())
+
+    private val connectedDevicesListener: () -> Unit = { syncLocationBuffer() }
+
     override fun onConnected(connected: Boolean) {
+        syncLocationBuffer()
         other?.onSupportedBudsChanged()
         if (connected) {
             usageHeartbeat()

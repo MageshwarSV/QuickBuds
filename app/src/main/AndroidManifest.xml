@@ -29,6 +29,8 @@
     <!-- Auto-answer (Earbud settings): see a ringing call, and answer it. Asked when the user turns it on. -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+    <!-- Auto-answer › Which calls: Android gives the caller's number only with this. Asked when a contact filter is chosen. -->
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
 
     <!--
       Needed only so the app can hand a downloaded APK to Android's own package
@@ -178,8 +180,16 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".ui.AutoAnswerActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.DisconnectPlacesActivity"
             android:exported="false" />
+        <!-- Portrait: the compass heading follows the phone's own axes. -->
+        <activity
+            android:name=".ui.PlaceNavigatorActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.SleepTimerActivity"
             android:exported="false"

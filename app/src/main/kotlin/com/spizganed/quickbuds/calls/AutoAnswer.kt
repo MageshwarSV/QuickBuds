@@ -42,6 +42,60 @@ object AutoAnswer {
 
     /** At the end of the delay: answer only if the call still rings and earbuds are connected for calls. */
     fun shouldAnswer(stillRinging: Boolean, earbudsConnected: Boolean): Boolean = stillRinging && earbudsConnected
+
+    // --- Which calls: all, only chosen contacts, or all except chosen contacts ---
+
+    enum class Filter { ALL, ONLY, EXCEPT }
+
+    /** A chosen contact: the name to show and the number to match. */
+    data class Contact(val name: String, val number: String)
+
+    const val KEY_FILTER = "autoAnswerFilter"
+    private const val KEY_CONTACTS = "autoAnswerContacts"
+
+    /** Android gives the caller's number only with this permission (Android 9+). */
+    const val CALL_LOG = Manifest.permission.READ_CALL_LOG
+
+    fun filter(c: Context): Filter =
+        runCatching { Filter.valueOf(prefs(c).getString(KEY_FILTER, Filter.ALL.name)!!) }.getOrDefault(Filter.ALL)
+
+    fun setFilter(c: Context, f: Filter) = prefs(c).edit().putString(KEY_FILTER, f.name).apply()
+
+    fun callLogPermitted(c: Context) = c.checkSelfPermission(CALL_LOG) == PackageManager.PERMISSION_GRANTED
+
+    fun contacts(c: Context): List<Contact> = runCatching {
+        val arr = org.json.JSONArray(prefs(c).getString(KEY_CONTACTS, "[]"))
+        (0 until arr.length()).map { arr.getJSONObject(it).let { o -> Contact(o.getString("name"), o.getString("number")) } }
+    }.getOrDefault(emptyList())
+
+    fun setContacts(c: Context, list: List<Contact>) {
+        val arr = org.json.JSONArray()
+        list.forEach { arr.put(org.json.JSONObject().put("name", it.name).put("number", it.number)) }
+        prefs(c).edit().putString(KEY_CONTACTS, arr.toString()).apply()
+    }
+
+    /** The digits only; "+91 98765-43210" and "098765 43210" both end in 9876543210. */
+    private fun digits(n: String) = n.filter { it.isDigit() }
+
+    /** Same number: the last 10 digits, so a country code or a trunk 0 does not matter; shorter numbers must equal. */
+    fun sameNumber(a: String, b: String): Boolean {
+        val x = digits(a); val y = digits(b)
+        if (x.isEmpty() || y.isEmpty()) return false
+        return if (x.length >= 10 && y.length >= 10) x.takeLast(10) == y.takeLast(10) else x == y
+    }
+
+    /**
+     * Whether the caller passes the filter. A hidden or unknown number ([number] null) is not a chosen contact:
+     * ONLY skips it, EXCEPT answers it.
+     */
+    fun callerAllowed(filter: Filter, number: String?, contacts: List<Contact>): Boolean {
+        val chosen = number != null && contacts.any { sameNumber(it.number, number) }
+        return when (filter) {
+            Filter.ALL -> true
+            Filter.ONLY -> chosen
+            Filter.EXCEPT -> !chosen
+        }
+    }
 }
 
 /**
@@ -57,18 +111,26 @@ class AutoAnswerMonitor(private val context: Context) {
 
     private val answer = Runnable { tryAnswer() }
 
+    /** The ringing call's number, when Android gives it (call log permission): one of the two broadcasts has it. */
+    private var incoming: String? = null
+
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(c: Context, intent: Intent) {
             when (intent.getStringExtra(TelephonyManager.EXTRA_STATE)) {
                 TelephonyManager.EXTRA_STATE_RINGING -> {
                     if (!AutoAnswer.enabled(context)) return
+                    @Suppress("DEPRECATION")
+                    intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)?.takeIf { it.isNotBlank() }?.let { incoming = it }
                     // The broadcast comes twice (with and without the number): one timer.
                     handler.removeCallbacks(answer)
                     handler.postDelayed(answer, AutoAnswer.delaySeconds(context) * 1000L)
                     PacketLogger.log("CALL: ringing, auto-answer in ${AutoAnswer.delaySeconds(context)} s if the earbuds are connected")
                 }
                 // Answered or rejected by the user, or ended: nothing to do.
-                TelephonyManager.EXTRA_STATE_OFFHOOK, TelephonyManager.EXTRA_STATE_IDLE -> handler.removeCallbacks(answer)
+                TelephonyManager.EXTRA_STATE_OFFHOOK, TelephonyManager.EXTRA_STATE_IDLE -> {
+                    handler.removeCallbacks(answer)
+                    incoming = null
+                }
             }
         }
     }
@@ -100,6 +162,13 @@ class AutoAnswerMonitor(private val context: Context) {
             context.getSystemService(TelephonyManager::class.java)?.callState == TelephonyManager.CALL_STATE_RINGING
         }.getOrDefault(false)
         if (!ringing) return
+        val filter = AutoAnswer.filter(context)
+        if (!AutoAnswer.callerAllowed(filter, incoming, AutoAnswer.contacts(context))) {
+            // No number in the log: it is personal data.
+            PacketLogger.log("CALL: not answered: the caller does not pass the contact filter ($filter, " +
+                "${if (incoming == null) "number not known" else "number known"})")
+            return
+        }
         callHeadset { name ->
             if (!AutoAnswer.shouldAnswer(ringing, name != null)) {
                 PacketLogger.log("CALL: not answered: no earbuds connected for calls")

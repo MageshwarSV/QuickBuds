@@ -18,8 +18,10 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * One disconnect: which device, when, and where the phone was. [lat]/[lng] are null when no position was found;
- * [note] says why. [place] is the street address, filled in later by the Disconnect locations screen.
+ * One disconnect: which device, when, and where the phone was. Two positions, never mixed up:
+ *  - [lat]/[lng]: the phone measured right AFTER the disconnect (null when none was found; [note] says why);
+ *  - [connected]: the phone's last position WHILE still connected ([LocationBuffer]), often nearer the buds.
+ * Neither is where the buds are: the buds report no position. [place] is the street address of [target].
  */
 data class DisconnectPlace(
     val atMs: Long,
@@ -30,11 +32,22 @@ data class DisconnectPlace(
     val accuracyM: Float? = null,
     val fixAtMs: Long? = null,
     val note: Note = Note.FIX,
-    val place: String? = null
+    val place: String? = null,
+    val connected: Fix? = null
 ) {
     enum class Note { FIX, LAST_KNOWN, LOCATION_OFF, NO_PERMISSION, NOT_FOUND }
 
-    val hasPosition get() = lat != null && lng != null
+    val hasPosition get() = (lat != null && lng != null) || connected != null
+
+    /** The position after the disconnect, as a [Fix], or null. */
+    val after: Fix? get() = if (lat != null && lng != null) Fix(lat, lng, accuracyM, fixAtMs ?: atMs) else null
+
+    /** Where to go: the position while connected if it is good or fair, else the one after, else whatever there is. */
+    val target: Fix? get() {
+        val c = connected
+        if (c != null && DisconnectPlaceRules.confidence(c, atMs) <= DisconnectPlaceRules.Confidence.FAIR) return c
+        return after ?: c
+    }
 }
 
 /** A position from Android, without the Android class, so the choice of the best one is testable. */
@@ -56,6 +69,24 @@ object DisconnectPlaceRules {
         val repeat = list.any { it.address == entry.address && kotlin.math.abs(it.atMs - entry.atMs) < SAME_DISCONNECT_MS }
         if (repeat) return null
         return (listOf(entry) + list).take(MAX)
+    }
+
+    /** How far to trust a position for a disconnect at [atMs]: its accuracy and how old it was then. */
+    enum class Confidence { GOOD, FAIR, POOR, STALE }
+
+    /** A position older than this at the disconnect says little about where it happened. */
+    const val STALE_MS = 15 * 60_000L
+
+    fun confidence(f: Fix, atMs: Long): Confidence {
+        val age = atMs - f.atMs
+        val acc = f.accuracyM
+        return when {
+            age > STALE_MS -> Confidence.STALE
+            acc == null || acc > 100f -> Confidence.POOR
+            acc <= 25f && age <= 2 * 60_000L -> Confidence.GOOD
+            age <= 10 * 60_000L -> Confidence.FAIR
+            else -> Confidence.POOR
+        }
     }
 
     /** The newest fix not older than [LAST_KNOWN_MAX_AGE_MS]; among equals in age, the most accurate. */
@@ -135,6 +166,9 @@ object DisconnectPlaces {
         p.lat?.let { put("lat", it) }; p.lng?.let { put("lng", it) }
         p.accuracyM?.let { put("acc", it.toDouble()) }; p.fixAtMs?.let { put("fixAt", it) }
         p.place?.let { put("place", it) }
+        p.connected?.let { c ->
+            put("cLat", c.lat); put("cLng", c.lng); put("cAt", c.atMs); c.accuracyM?.let { put("cAcc", it.toDouble()) }
+        }
     }
 
     private fun fromJson(o: JSONObject) = runCatching {
@@ -147,7 +181,9 @@ object DisconnectPlaces {
             accuracyM = if (o.has("acc")) o.getDouble("acc").toFloat() else null,
             fixAtMs = if (o.has("fixAt")) o.getLong("fixAt") else null,
             note = runCatching { DisconnectPlace.Note.valueOf(o.getString("note")) }.getOrDefault(DisconnectPlace.Note.FIX),
-            place = o.optString("place").takeIf { it.isNotEmpty() }
+            place = o.optString("place").takeIf { it.isNotEmpty() },
+            connected = if (o.has("cLat")) Fix(o.getDouble("cLat"), o.getDouble("cLng"),
+                if (o.has("cAcc")) o.getDouble("cAcc").toFloat() else null, o.getLong("cAt")) else null
         )
     }.getOrNull()
 
@@ -162,7 +198,9 @@ object DisconnectPlaces {
         val c = context.applicationContext
         if (!enabled(c)) return done()
         val now = System.currentTimeMillis()
-        fun save(entry: DisconnectPlace) { add(c, entry); done() }
+        // The phone's last position while still connected, if one is recent enough to mean something.
+        val whileConnected = LocationBuffer.latest(c)?.first?.takeIf { now - it.atMs <= DisconnectPlaceRules.STALE_MS }
+        fun save(entry: DisconnectPlace) { add(c, entry.copy(connected = whileConnected)); done() }
         if (!foregroundPermitted(c)) return save(DisconnectPlace(now, address, name, note = DisconnectPlace.Note.NO_PERMISSION))
         val lm = c.getSystemService(LocationManager::class.java)
         if (lm == null || !LocationManagerCompat.isLocationEnabled(lm)) {

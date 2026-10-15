@@ -156,9 +156,11 @@ class DisconnectPlacesActivity : Activity() {
                 render()
             }
         }
+        val export = SettingRowFactory.build(this, R.drawable.ic_share, R.string.dloc_export, R.string.dloc_export_sub, null) { export() }
         list.addView(SettingRowFactory.card(this).apply {
             (layoutParams as LinearLayout.LayoutParams).topMargin = ThemeRes.dp(this@DisconnectPlacesActivity, 12f)
-            addView(clear)
+            SettingRowFactory.addRow(this, export)
+            SettingRowFactory.addRow(this, clear)
         })
         lookUpAddresses(entries)
     }
@@ -166,46 +168,62 @@ class DisconnectPlacesActivity : Activity() {
     private fun entryRow(p: DisconnectPlace): LinearLayout {
         val chevron = if (p.hasPosition) SettingRowFactory.buildChevron(this) else null
         val row = SettingRowFactory.build(this, R.drawable.ic_place, 0, 0, chevron,
-            onClick = if (p.hasPosition) ({ openMap(p) }) else null)
+            onClick = if (p.hasPosition) ({ startActivity(PlaceNavigatorActivity.intent(this, p)) }) else null)
         row.findViewWithTag<TextView>(SettingRowFactory.TITLE_TAG).text = p.name
         val time = DateUtils.formatDateTime(this, p.atMs,
             DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_SHOW_WEEKDAY or DateUtils.FORMAT_ABBREV_ALL)
-        val where = when (p.note) {
+        val t = p.target
+        val where = if (t == null) when (p.note) {
             DisconnectPlace.Note.LOCATION_OFF -> getString(R.string.dloc_note_off)
             DisconnectPlace.Note.NO_PERMISSION -> getString(R.string.dloc_note_permission)
-            DisconnectPlace.Note.NOT_FOUND -> getString(R.string.dloc_note_not_found)
-            DisconnectPlace.Note.FIX, DisconnectPlace.Note.LAST_KNOWN -> listOfNotNull(
-                p.place ?: coordinates(p),
-                p.accuracyM?.let { getString(R.string.dloc_accuracy, it.toInt()) },
-                if (p.note == DisconnectPlace.Note.LAST_KNOWN) getString(R.string.dloc_last_known) else null
-            ).joinToString(" · ")
-        }
+            else -> getString(R.string.dloc_note_not_found)
+        } else listOfNotNull(
+            p.place ?: String.format(Locale.US, "%.5f, %.5f", t.lat, t.lng),
+            t.accuracyM?.let { getString(R.string.dloc_accuracy, it.toInt()) },
+            getString(if (t == p.connected) R.string.dloc_while_connected else R.string.dloc_after),
+            getString(when (com.spizganed.quickbuds.proximity.DisconnectPlaceRules.confidence(t, p.atMs)) {
+                com.spizganed.quickbuds.proximity.DisconnectPlaceRules.Confidence.GOOD -> R.string.nav_conf_good
+                com.spizganed.quickbuds.proximity.DisconnectPlaceRules.Confidence.FAIR -> R.string.nav_conf_fair
+                com.spizganed.quickbuds.proximity.DisconnectPlaceRules.Confidence.POOR -> R.string.nav_conf_poor
+                com.spizganed.quickbuds.proximity.DisconnectPlaceRules.Confidence.STALE -> R.string.nav_conf_stale
+            }).lowercase(Locale.getDefault()),
+            if (t != p.connected && p.note == DisconnectPlace.Note.LAST_KNOWN) getString(R.string.dloc_last_known) else null
+        ).joinToString(" · ")
         SettingRowFactory.subtitle(this, row).text = "$time\n$where"
         return row
     }
 
-    private fun coordinates(p: DisconnectPlace) = String.format(Locale.US, "%.5f, %.5f", p.lat, p.lng)
-
-    /** The maps app at the place, with a pin named after the device; a browser map when no maps app answers geo:. */
-    private fun openMap(p: DisconnectPlace) {
-        val ll = String.format(Locale.US, "%.6f,%.6f", p.lat, p.lng)
-        val geo = Uri.parse("geo:$ll?q=$ll(${Uri.encode(p.name)})")
-        val web = Uri.parse("https://www.google.com/maps/search/?api=1&query=$ll")
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, geo))
-        } catch (e: ActivityNotFoundException) {
-            try {
-                startActivity(Intent(Intent.ACTION_VIEW, web))
-            } catch (e2: ActivityNotFoundException) {
-                Toast.makeText(this, R.string.dloc_no_maps, Toast.LENGTH_SHORT).show()
-            }
+    /**
+     * The history as CSV, shared through the app's FileProvider: both positions per disconnect, with accuracy and
+     * time. Written to the cache, so it does not stay on the phone after Android clears the cache.
+     */
+    private fun export() {
+        val entries = DisconnectPlaces.all(this)
+        if (entries.isEmpty()) return Toast.makeText(this, R.string.dloc_export_none, Toast.LENGTH_SHORT).show()
+        val iso = java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
+        fun time(ms: Long?) = ms?.let { java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).format(iso) }.orEmpty()
+        fun q(v: String?) = "\"" + (v ?: "").replace("\"", "\"\"") + "\""
+        val csv = StringBuilder("disconnected,device,address,connected_lat,connected_lng,connected_accuracy_m,connected_time," +
+            "after_lat,after_lng,after_accuracy_m,after_time,note,place\n")
+        for (p in entries) {
+            val c = p.connected
+            csv.append(listOf(time(p.atMs), q(p.name), p.address, c?.lat ?: "", c?.lng ?: "", c?.accuracyM ?: "", time(c?.atMs),
+                p.lat ?: "", p.lng ?: "", p.accuracyM ?: "", time(p.fixAtMs), p.note.name, q(p.place)).joinToString(",")).append('\n')
         }
+        runCatching {
+            val dir = java.io.File(cacheDir, "exports").apply { mkdirs() }
+            val file = java.io.File(dir, "quickbuds-disconnect-locations.csv")
+            file.writeText(csv.toString())
+            val uri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+            startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/csv")
+                .putExtra(Intent.EXTRA_STREAM, uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), getString(R.string.dloc_export)))
+        }.onFailure { PacketLogger.error("disconnect places export", it) }
     }
 
     /** Street addresses for entries that have none yet, off the main thread; the list redraws once they are in. */
     private fun lookUpAddresses(entries: List<DisconnectPlace>) {
         if (geocoding || !Geocoder.isPresent()) return
-        val todo = entries.filter { it.hasPosition && it.place == null && it.atMs !in tried }.take(20)
+        val todo = entries.filter { it.target != null && it.place == null && it.atMs !in tried }.take(20)
         if (todo.isEmpty()) return
         geocoding = true
         todo.forEach { tried.add(it.atMs) }
@@ -216,7 +234,7 @@ class DisconnectPlacesActivity : Activity() {
             for (p in todo) {
                 val line = runCatching {
                     @Suppress("DEPRECATION")
-                    geocoder.getFromLocation(p.lat!!, p.lng!!, 1)?.firstOrNull()?.getAddressLine(0)
+                    geocoder.getFromLocation(p.target!!.lat, p.target!!.lng, 1)?.firstOrNull()?.getAddressLine(0)
                 }.onFailure { PacketLogger.log("PLACE: address lookup failed: ${it.message}") }.getOrNull()
                 if (!line.isNullOrBlank()) {
                     DisconnectPlaces.setPlace(app, p.atMs, p.address, line)
