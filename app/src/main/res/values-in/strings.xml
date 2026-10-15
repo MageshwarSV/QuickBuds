@@ -653,4 +653,9 @@
     <string name="dloc_note_permission">Tidak ada izin lokasi</string>
     <string name="dloc_note_not_found">Posisi tidak ditemukan</string>
     <string name="dloc_no_maps">Aplikasi peta tidak ditemukan</string>
+    <string name="usage_battery_title">Masa pakai baterai</string>
+    <string name="usage_battery_left">Sekitar %1$s lagi · saat ini %2$d%%</string>
+    <string name="usage_battery_full">Baterai penuh: sekitar %1$s · %2$d%% per jam</string>
+    <string name="usage_battery_basis">Berdasarkan %1$s mendengarkan</string>
+    <string name="usage_battery_learning">Mempelajari: dengarkan minimal 30 menit untuk mendapatkan perkiraan</string>
 </resources>

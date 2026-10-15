@@ -653,4 +653,9 @@
     <string name="dloc_note_permission">Không có quyền vị trí</string>
     <string name="dloc_note_not_found">Không tìm thấy vị trí</string>
     <string name="dloc_no_maps">Không tìm thấy ứng dụng bản đồ</string>
+    <string name="usage_battery_title">Thời lượng pin</string>
+    <string name="usage_battery_left">Còn khoảng %1$s · hiện %2$d%%</string>
+    <string name="usage_battery_full">Sạc đầy: khoảng %1$s · %2$d%% mỗi giờ</string>
+    <string name="usage_battery_basis">Dựa trên %1$s nghe</string>
+    <string name="usage_battery_learning">Đang tìm hiểu: hãy nghe ít nhất 30 phút để có ước tính</string>
 </resources>

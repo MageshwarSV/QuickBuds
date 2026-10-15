@@ -653,4 +653,9 @@
     <string name="dloc_note_permission">Aucune autorisation de localisation</string>
     <string name="dloc_note_not_found">Position introuvable</string>
     <string name="dloc_no_maps">Aucune appli de cartes trouvée</string>
+    <string name="usage_battery_title">Autonomie</string>
+    <string name="usage_battery_left">Environ %1$s restantes · %2$d%% actuellement</string>
+    <string name="usage_battery_full">Charge complète : environ %1$s · %2$d%% par heure</string>
+    <string name="usage_battery_basis">Basé sur %1$s d\'écoute</string>
+    <string name="usage_battery_learning">Apprentissage : écoutez au moins 30 minutes pour obtenir une estimation</string>
 </resources>

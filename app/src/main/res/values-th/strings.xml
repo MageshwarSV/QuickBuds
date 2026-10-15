@@ -653,4 +653,9 @@
     <string name="dloc_note_permission">ไม่มีสิทธิ์เข้าถึงตำแหน่ง</string>
     <string name="dloc_note_not_found">ไม่พบตำแหน่ง</string>
     <string name="dloc_no_maps">ไม่พบแอปแผนที่</string>
+    <string name="usage_battery_title">อายุแบตเตอรี่</string>
+    <string name="usage_battery_left">เหลือประมาณ %1$s · ตอนนี้ %2$d%%</string>
+    <string name="usage_battery_full">ชาร์จเต็ม: ประมาณ %1$s · %2$d%% ต่อชั่วโมง</string>
+    <string name="usage_battery_basis">จากการฟัง %1$s</string>
+    <string name="usage_battery_learning">กำลังเรียนรู้: ฟังอย่างน้อย 30 นาทีเพื่อรับค่าประมาณ</string>
 </resources>

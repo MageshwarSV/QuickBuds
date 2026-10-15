@@ -652,4 +652,9 @@
     <string name="dloc_note_permission">Geen locatietoestemming</string>
     <string name="dloc_note_not_found">Positie niet gevonden</string>
     <string name="dloc_no_maps">Geen kaartenapp gevonden</string>
+    <string name="usage_battery_title">Batterijduur</string>
+    <string name="usage_battery_left">Nog ongeveer %1$s · nu %2$d%%</string>
+    <string name="usage_battery_full">Volledig opgeladen: ongeveer %1$s · %2$d%% per uur</string>
+    <string name="usage_battery_basis">Gebaseerd op %1$s luisteren</string>
+    <string name="usage_battery_learning">Bezig met leren: luister minstens 30 minuten voor een schatting</string>
 </resources>

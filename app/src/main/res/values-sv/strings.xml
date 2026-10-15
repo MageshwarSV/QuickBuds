@@ -652,4 +652,9 @@
     <string name="dloc_note_permission">Ingen platsbehörighet</string>
     <string name="dloc_note_not_found">Positionen hittades inte</string>
     <string name="dloc_no_maps">Ingen kartapp hittades</string>
+    <string name="usage_battery_title">Batteritid</string>
+    <string name="usage_battery_left">Cirka %1$s kvar · nu %2$d%%</string>
+    <string name="usage_battery_full">Fulladdat: cirka %1$s · %2$d%% per timme</string>
+    <string name="usage_battery_basis">Baserat på %1$s lyssning</string>
+    <string name="usage_battery_learning">Lär sig: lyssna i minst 30 minuter för att få en uppskattning</string>
 </resources>

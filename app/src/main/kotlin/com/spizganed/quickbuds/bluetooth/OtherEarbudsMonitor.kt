@@ -195,6 +195,8 @@ class OtherEarbudsMonitor(private val context: Context) {
         fastPair.standardLevel = level
         show(t)
         LowBatteryAlert.onOther(context, device.address, t.name, level, t.kind)
+        // Battery life (Usage statistics): connected means in use; in the case they disconnect.
+        com.spizganed.quickbuds.usage.BatteryDrain.record(context, device.address, level, draining = true)
         Usage.connected(context, device)
     }
 

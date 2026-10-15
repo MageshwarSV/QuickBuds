@@ -652,4 +652,9 @@
     <string name="dloc_note_permission">Δεν υπάρχει άδεια τοποθεσίας</string>
     <string name="dloc_note_not_found">Η θέση δεν βρέθηκε</string>
     <string name="dloc_no_maps">Δεν βρέθηκε εφαρμογή χαρτών</string>
+    <string name="usage_battery_title">Διάρκεια μπαταρίας</string>
+    <string name="usage_battery_left">Απομένουν περίπου %1$s · τώρα %2$d%%</string>
+    <string name="usage_battery_full">Πλήρης φόρτιση: περίπου %1$s · %2$d%% ανά ώρα</string>
+    <string name="usage_battery_basis">Με βάση %1$s ακρόασης</string>
+    <string name="usage_battery_learning">Εκμάθηση: ακούστε τουλάχιστον 30 λεπτά για εκτίμηση</string>
 </resources>

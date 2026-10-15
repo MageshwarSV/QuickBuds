@@ -654,4 +654,9 @@
     <string name="dloc_note_permission">Немає дозволу на геолокацію</string>
     <string name="dloc_note_not_found">Місцезнаходження не знайдено</string>
     <string name="dloc_no_maps">Застосунок для карт не знайдено</string>
+    <string name="usage_battery_title">Час роботи</string>
+    <string name="usage_battery_left">Залишилось приблизно %1$s · зараз %2$d%%</string>
+    <string name="usage_battery_full">Повний заряд: приблизно %1$s · %2$d%% на годину</string>
+    <string name="usage_battery_basis">На основі %1$s прослуховування</string>
+    <string name="usage_battery_learning">Навчання: слухайте щонайменше 30 хвилин, щоб отримати оцінку</string>
 </resources>

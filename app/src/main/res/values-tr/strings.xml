@@ -652,4 +652,9 @@
     <string name="dloc_note_permission">Konum izni yok</string>
     <string name="dloc_note_not_found">Konum bulunamadı</string>
     <string name="dloc_no_maps">Harita uygulaması bulunamadı</string>
+    <string name="usage_battery_title">Pil ömrü</string>
+    <string name="usage_battery_left">Yaklaşık %1$s kaldı · şu an %2$d%%</string>
+    <string name="usage_battery_full">Tam şarj: yaklaşık %1$s · saatte %2$d%%</string>
+    <string name="usage_battery_basis">%1$s dinlemeye dayalı</string>
+    <string name="usage_battery_learning">Öğreniyor: tahmin için en az 30 dakika dinleyin</string>
 </resources>

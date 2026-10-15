@@ -653,4 +653,9 @@
     <string name="dloc_note_permission">Nessuna autorizzazione di posizione</string>
     <string name="dloc_note_not_found">Posizione non trovata</string>
     <string name="dloc_no_maps">Nessuna app di mappe trovata</string>
+    <string name="usage_battery_title">Durata della batteria</string>
+    <string name="usage_battery_left">Restano circa %1$s · ora %2$d%%</string>
+    <string name="usage_battery_full">Carica completa: circa %1$s · %2$d%% all\'ora</string>
+    <string name="usage_battery_basis">In base a %1$s di ascolto</string>
+    <string name="usage_battery_learning">Apprendimento: ascolta per almeno 30 minuti per ottenere una stima</string>
 </resources>

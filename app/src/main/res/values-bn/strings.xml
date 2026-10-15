@@ -652,4 +652,9 @@
     <string name="dloc_note_permission">লোকেশনের অনুমতি নেই</string>
     <string name="dloc_note_not_found">অবস্থান পাওয়া যায়নি</string>
     <string name="dloc_no_maps">কোনো ম্যাপ অ্যাপ পাওয়া যায়নি</string>
+    <string name="usage_battery_title">ব্যাটারি লাইফ</string>
+    <string name="usage_battery_left">আরও প্রায় %1$s চলবে · এখন %2$d%%</string>
+    <string name="usage_battery_full">পূর্ণ চার্জ: প্রায় %1$s · প্রতি ঘণ্টায় %2$d%%</string>
+    <string name="usage_battery_basis">%1$s শোনার উপর ভিত্তি করে</string>
+    <string name="usage_battery_learning">শিখছে: অনুমানের জন্য অন্তত ৩০ মিনিট শুনুন</string>
 </resources>

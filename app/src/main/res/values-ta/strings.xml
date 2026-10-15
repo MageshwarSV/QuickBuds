@@ -648,4 +648,9 @@
     <string name="dloc_note_permission">இருப்பிட அனுமதி இல்லை</string>
     <string name="dloc_note_not_found">இடம் கிடைக்கவில்லை</string>
     <string name="dloc_no_maps">வரைபட ஆப்ஸ் எதுவும் இல்லை</string>
+    <string name="usage_battery_title">பேட்டரி ஆயுள்</string>
+    <string name="usage_battery_left">இன்னும் சுமார் %1$s · இப்போது %2$d%%</string>
+    <string name="usage_battery_full">முழு சார்ஜ்: சுமார் %1$s · மணிக்கு %2$d%%</string>
+    <string name="usage_battery_basis">%1$s கேட்டதன் அடிப்படையில்</string>
+    <string name="usage_battery_learning">கற்கிறது: மதிப்பீட்டிற்கு குறைந்தது 30 நிமிடங்கள் கேளுங்கள்</string>
 </resources>

@@ -651,4 +651,9 @@
     <string name="dloc_note_permission">位置情報の権限がありません</string>
     <string name="dloc_note_not_found">位置が見つかりません</string>
     <string name="dloc_no_maps">地図アプリが見つかりません</string>
+    <string name="usage_battery_title">バッテリー駆動時間</string>
+    <string name="usage_battery_left">残り約%1$s · 現在%2$d%%</string>
+    <string name="usage_battery_full">フル充電: 約%1$s · 1時間あたり%2$d%%</string>
+    <string name="usage_battery_basis">%1$sの再生時間に基づく</string>
+    <string name="usage_battery_learning">学習中: 推定には30分以上聴いてください</string>
 </resources>

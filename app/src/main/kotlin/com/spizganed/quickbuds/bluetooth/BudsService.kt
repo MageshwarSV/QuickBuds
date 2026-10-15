@@ -553,6 +553,12 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         BatteryCard.caseCharging = chargingCase
         BatteryCard.update(this, st)
         LowBatteryAlert.onBattery(this, left, case, right, chargingLeft, chargingCase, chargingRight)
+        // Battery life (Usage statistics): how fast the buds drain while out of the case (wear status 4 = in case).
+        BudsDevice.find(this)?.address?.let { address ->
+            val level = com.spizganed.quickbuds.usage.BatteryDrain.budsLevel(st.leftBattery, st.rightBattery,
+                leftInUse = !chargingLeft && st.leftStatus != 4, rightInUse = !chargingRight && st.rightStatus != 4)
+            com.spizganed.quickbuds.usage.BatteryDrain.record(this, address, level ?: -1, draining = level != null)
+        }
     }
 
     override fun onWearState(left: Int, right: Int, caseSt: Int) {

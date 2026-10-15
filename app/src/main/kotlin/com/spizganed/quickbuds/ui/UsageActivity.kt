@@ -127,6 +127,7 @@ class UsageActivity : Activity() {
         val today = today()
         if (s.devices.size > 1) content.addView(deviceRow(s))
         content.addView(summaryCards(today))
+        content.addView(batteryLife(s))
 
         content.addView(AncSegmentedView(this, listOf(
             getString(R.string.usage_tab_day), getString(R.string.usage_tab_week), getString(R.string.usage_tab_month)
@@ -167,6 +168,43 @@ class UsageActivity : Activity() {
             })
         }
         return row
+    }
+
+    // --- Battery life: how long a charge lasts, from how fast the level fell while listening ---
+
+    private fun batteryLife(s: Usage.Snapshot): View {
+        val card = SettingRowFactory.card(this).apply {
+            layoutParams = (layoutParams as LinearLayout.LayoutParams).apply { topMargin = dp(8f) }
+        }
+        card.addView(text(getString(R.string.usage_battery_title), 13f, secondary = true).apply {
+            setPadding(dp(16f), dp(12f), dp(16f), 0)
+        })
+        for (d in s.devices.filter { device == null || it.id == device }) {
+            val rate = com.spizganed.quickbuds.usage.BatteryDrain.rate(this, d.id)
+            val now = levelNow(d.id)
+            val lines = if (rate == null) listOf(getString(R.string.usage_battery_learning)) else listOfNotNull(
+                now?.let { getString(R.string.usage_battery_left, UsageFormat.duration(this, com.spizganed.quickbuds.usage.BatteryDrain.lastsMs(it, rate)), it) },
+                getString(R.string.usage_battery_full, UsageFormat.duration(this, com.spizganed.quickbuds.usage.BatteryDrain.lastsMs(100, rate)),
+                    Math.round(rate.pctPerHour).toInt()),
+                getString(R.string.usage_battery_basis, UsageFormat.duration(this, rate.listenedMs))
+            )
+            val row = SettingRowFactory.build(this, R.drawable.ic_case, 0, 0, null, minHeightDp = 56f)
+            row.findViewWithTag<TextView>(SettingRowFactory.TITLE_TAG).text = d.label
+            SettingRowFactory.subtitle(this, row).text = lines.joinToString("\n")
+            SettingRowFactory.addRow(card, row)
+        }
+        return card
+    }
+
+    /** The level that runs out first, while the device is connected: the buds out of the case, or the other earbuds' level. */
+    private fun levelNow(id: String): Int? {
+        val st = com.spizganed.quickbuds.widget.WidgetStateStore.read(this)
+        if (st.connected && com.spizganed.quickbuds.bluetooth.BudsDevice.find(this)?.address == id) {
+            return com.spizganed.quickbuds.usage.BatteryDrain.budsLevel(st.leftBattery, st.rightBattery,
+                leftInUse = !com.spizganed.quickbuds.notify.BatteryCard.leftCharging && st.leftStatus != 4,
+                rightInUse = !com.spizganed.quickbuds.notify.BatteryCard.rightCharging && st.rightStatus != 4)
+        }
+        return com.spizganed.quickbuds.bluetooth.ConnectedDevices.all().firstOrNull { it.address == id }?.level?.takeIf { it > 0 }
     }
 
     // --- Day: one day as a 24-hour ring, its figures and sessions ---

@@ -653,4 +653,9 @@
     <string name="dloc_note_permission">没有位置权限</string>
     <string name="dloc_note_not_found">未找到位置</string>
     <string name="dloc_no_maps">未找到地图应用</string>
+    <string name="usage_battery_title">电池续航</string>
+    <string name="usage_battery_left">预计还可使用约 %1$s · 当前 %2$d%%</string>
+    <string name="usage_battery_full">充满电：约 %1$s · 每小时 %2$d%%</string>
+    <string name="usage_battery_basis">基于 %1$s 的收听时间</string>
+    <string name="usage_battery_learning">学习中：收听至少 30 分钟后可获得估算</string>
 </resources>

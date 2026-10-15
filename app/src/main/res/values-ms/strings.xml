@@ -651,4 +651,9 @@
     <string name="dloc_note_permission">Tiada kebenaran lokasi</string>
     <string name="dloc_note_not_found">Kedudukan tidak ditemui</string>
     <string name="dloc_no_maps">Apl peta tidak ditemui</string>
+    <string name="usage_battery_title">Hayat bateri</string>
+    <string name="usage_battery_left">Lebih kurang %1$s lagi · kini %2$d%%</string>
+    <string name="usage_battery_full">Cas penuh: lebih kurang %1$s · %2$d%% sejam</string>
+    <string name="usage_battery_basis">Berdasarkan %1$s mendengar</string>
+    <string name="usage_battery_learning">Sedang belajar: dengar sekurang-kurangnya 30 minit untuk mendapatkan anggaran</string>
 </resources>

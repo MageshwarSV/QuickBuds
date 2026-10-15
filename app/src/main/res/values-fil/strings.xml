@@ -652,4 +652,9 @@
     <string name="dloc_note_permission">Walang pahintulot sa lokasyon</string>
     <string name="dloc_note_not_found">Hindi nahanap ang posisyon</string>
     <string name="dloc_no_maps">Walang nahanap na maps app</string>
+    <string name="usage_battery_title">Tagal ng baterya</string>
+    <string name="usage_battery_left">Mga %1$s pa ang natitira · %2$d%% ngayon</string>
+    <string name="usage_battery_full">Buong charge: mga %1$s · %2$d%% bawat oras</string>
+    <string name="usage_battery_basis">Batay sa %1$s na pakikinig</string>
+    <string name="usage_battery_learning">Natututo: making nang hindi bababa sa 30 minuto para magkaroon ng pagtataya</string>
 </resources>

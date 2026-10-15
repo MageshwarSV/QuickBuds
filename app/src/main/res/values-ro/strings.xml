@@ -653,4 +653,9 @@
     <string name="dloc_note_permission">Fără permisiune de locație</string>
     <string name="dloc_note_not_found">Poziția nu a fost găsită</string>
     <string name="dloc_no_maps">Nu s-a găsit nicio aplicație de hărți</string>
+    <string name="usage_battery_title">Autonomia bateriei</string>
+    <string name="usage_battery_left">Mai sunt aproximativ %1$s · acum %2$d%%</string>
+    <string name="usage_battery_full">Încărcare completă: aproximativ %1$s · %2$d%% pe oră</string>
+    <string name="usage_battery_basis">Pe baza a %1$s de ascultare</string>
+    <string name="usage_battery_learning">Se învață: ascultă cel puțin 30 de minute pentru o estimare</string>
 </resources>

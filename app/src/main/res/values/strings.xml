@@ -738,5 +738,10 @@
     <string name="dloc_note_permission">No location permission</string>
     <string name="dloc_note_not_found">Position not found</string>
     <string name="dloc_no_maps">No maps app found</string>
+    <string name="usage_battery_title">Battery life</string>
+    <string name="usage_battery_left">About %1$s left · %2$d%% now</string>
+    <string name="usage_battery_full">Full charge: about %1$s · %2$d%% per hour</string>
+    <string name="usage_battery_basis">Based on %1$s of listening</string>
+    <string name="usage_battery_learning">Learning: listen for at least 30 minutes to get an estimate</string>
     <string name="usage_range" translatable="false">%1$s – %2$s</string>
 </resources>

@@ -32,8 +32,10 @@ class KeepAliveReceiver : BroadcastReceiver() {
         }
         when (action) {
             BluetoothDevice.ACTION_ACL_CONNECTED -> recordUsage { Usage.connected(context, device, newLink = true, done = it) }
-            // The same disconnect also saves where the phone is (Disconnect locations, off by default).
+            // The same disconnect also saves where the phone is (Disconnect locations, off by default), and ends
+            // the battery life stretch being measured.
             BluetoothDevice.ACTION_ACL_DISCONNECTED -> recordAll(
+                { com.spizganed.quickbuds.usage.BatteryDrain.disconnected(context, device.address); it() },
                 { Usage.disconnected(context, device.address, done = it) },
                 { com.spizganed.quickbuds.proximity.DisconnectPlaces.record(context, device.address, deviceName(device), it) }
             )
