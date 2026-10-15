@@ -701,4 +701,5 @@
     <string name="aa_calllog_title">Zezwól na dostęp do rejestrów połączeń</string>
     <string name="aa_calllog_body">Android pokazuje aplikacji, kto dzwoni, tylko z uprawnieniem do rejestrów połączeń. QuickBuds używa numeru tylko do porównania z wybranymi kontaktami i niczego nie zapisuje.</string>
     <string name="aa_calllog_needed">Zezwól na dostęp do rejestrów połączeń, inaczej QuickBuds nie zobaczy, kto dzwoni</string>
+    <string name="nav_rough">Zapisane miejsce jest przybliżone (±%1$d m): pochodzi z Wi-Fi lub sieci komórkowej, nie z GPS. Szukaj w tej odległości.</string>
 </resources>

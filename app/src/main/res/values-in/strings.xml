@@ -700,4 +700,5 @@
     <string name="aa_calllog_title">Izinkan log panggilan</string>
     <string name="aa_calllog_body">Android hanya menunjukkan siapa yang menelepon kepada aplikasi jika ada izin log panggilan. QuickBuds memakai nomor itu hanya untuk dicocokkan dengan kontak yang Anda pilih, dan tidak menyimpan apa pun.</string>
     <string name="aa_calllog_needed">Izinkan log panggilan, atau QuickBuds tidak dapat melihat siapa yang menelepon</string>
+    <string name="nav_rough">Lokasi tersimpan kurang akurat (±%1$d m): berasal dari Wi-Fi atau jaringan seluler, bukan GPS. Cari dalam jarak tersebut.</string>
 </resources>

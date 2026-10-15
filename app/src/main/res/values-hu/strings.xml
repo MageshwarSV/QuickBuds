@@ -699,4 +699,5 @@
     <string name="aa_calllog_title">Hívásnaplók engedélyezése</string>
     <string name="aa_calllog_body">Az Android csak a hívásnapló-engedéllyel mutatja meg egy alkalmazásnak, ki hív. A QuickBuds a számot csak a kiválasztott névjegyekkel való összevetésre használja, és semmit nem tárol.</string>
     <string name="aa_calllog_needed">Engedélyezd a hívásnaplókat, különben a QuickBuds nem látja, ki hív</string>
+    <string name="nav_rough">A mentett hely pontatlan (±%1$d m): Wi-Fi-ből vagy mobilhálózatból származik, nem GPS-ből. Ezen a távolságon belül keresd.</string>
 </resources>

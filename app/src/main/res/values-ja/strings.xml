@@ -698,4 +698,5 @@
     <string name="aa_calllog_title">通話履歴を許可</string>
     <string name="aa_calllog_body">Android は、通話履歴の権限がある場合にのみ、着信者をアプリに知らせます。QuickBuds は番号を選択した連絡先との照合にのみ使用し、何も保存しません。</string>
     <string name="aa_calllog_needed">通話履歴を許可してください。許可しないと QuickBuds は着信者を確認できません</string>
+    <string name="nav_rough">保存した場所は精度が低めです(±%1$d m)。GPS ではなく Wi-Fi またはモバイルネットワークで取得しました。この範囲内を探してください。</string>
 </resources>

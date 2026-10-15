@@ -700,4 +700,5 @@
     <string name="aa_calllog_title">Consenti i registri chiamate</string>
     <string name="aa_calllog_body">Android mostra a un\'app chi sta chiamando solo con l\'autorizzazione per il registro chiamate. QuickBuds usa il numero solo per confrontarlo con i contatti scelti e non conserva nulla.</string>
     <string name="aa_calllog_needed">Consenti i registri chiamate, altrimenti QuickBuds non può vedere chi chiama</string>
+    <string name="nav_rough">Il luogo salvato è approssimativo (±%1$d m): proviene dal Wi-Fi o dalla rete mobile, non dal GPS. Cerca entro questa distanza.</string>
 </resources>

@@ -698,4 +698,5 @@
     <string name="aa_calllog_title">통화 기록 허용</string>
     <string name="aa_calllog_body">Android는 통화 기록 권한이 있어야만 앱에 발신자를 알려 줍니다. QuickBuds는 번호를 선택한 연락처와 비교하는 데만 사용하며 아무것도 저장하지 않습니다.</string>
     <string name="aa_calllog_needed">통화 기록을 허용하세요. 허용하지 않으면 QuickBuds가 발신자를 확인할 수 없습니다</string>
+    <string name="nav_rough">저장된 위치는 정확하지 않습니다(±%1$d m). GPS가 아닌 Wi-Fi 또는 모바일 네트워크로 얻은 위치입니다. 이 거리 안에서 찾아보세요.</string>
 </resources>

@@ -42,7 +42,10 @@ class PlaceNavigationTest {
 
     @Test fun nearWhenInsideTheMarginNeverZero() {
         assertEquals(PlaceNavigation.State.NEAR, PlaceNavigation.state(9.0, 10.0))
+        assertEquals(PlaceNavigation.State.NEAR, PlaceNavigation.state(16.0, 10.0))   // inside the 95% radius
         assertEquals(PlaceNavigation.State.GO, PlaceNavigation.state(42.0, 10.0))
+        // 2026-10-16: the phone never moved; saved ±100 m (Wi-Fi), now ±5 m (GPS), 152 m apart. Near, not "152 m".
+        assertEquals(PlaceNavigation.State.NEAR, PlaceNavigation.state(152.0, PlaceNavigation.uncertaintyM(5f, 100f)))
         assertEquals(PlaceNavigation.State.NEAR, PlaceNavigation.state(5.0, 2.0))     // margin floor 8 m
         assertEquals(PlaceNavigation.State.NEAR, PlaceNavigation.state(7.0, null))
     }
@@ -70,5 +73,8 @@ class PlaceNavigationTest {
         // A stale one while connected: the position after the disconnect.
         val stale = p.copy(connected = Fix(2.0, 2.0, 10f, at - 30 * 60_000L))
         assertEquals(3.0, stale.target!!.lat, 0.0)
+        // A rough one while connected (Wi-Fi, ±100 m) and a GPS one after (±10 m): the GPS one.
+        val rough = p.copy(connected = Fix(2.0, 2.0, 100f, at - 30_000L), accuracyM = 10f)
+        assertEquals(3.0, rough.target!!.lat, 0.0)
     }
 }

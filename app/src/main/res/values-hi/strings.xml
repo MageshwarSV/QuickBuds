@@ -701,4 +701,5 @@
     <string name="aa_calllog_title">कॉल लॉग की अनुमति दें</string>
     <string name="aa_calllog_body">Android किसी ऐप को यह तभी दिखाता है कि कौन कॉल कर रहा है, जब उसके पास कॉल लॉग की अनुमति हो। QuickBuds नंबर का इस्तेमाल सिर्फ़ आपके चुने हुए संपर्कों से मिलान करने के लिए करता है और कुछ सेव नहीं करता।</string>
     <string name="aa_calllog_needed">कॉल लॉग की अनुमति दें, वरना QuickBuds यह नहीं देख पाएगा कि कौन कॉल कर रहा है</string>
+    <string name="nav_rough">सहेजी गई जगह अनुमानित है (±%1$d मी): यह Wi-Fi या मोबाइल नेटवर्क से मिली है, GPS से नहीं। इसी दूरी के भीतर देखें।</string>
 </resources>

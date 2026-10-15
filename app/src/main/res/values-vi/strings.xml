@@ -700,4 +700,5 @@
     <string name="aa_calllog_title">Cho phép nhật ký cuộc gọi</string>
     <string name="aa_calllog_body">Android chỉ cho ứng dụng biết ai đang gọi khi có quyền truy cập nhật ký cuộc gọi. QuickBuds chỉ dùng số để đối chiếu với các liên hệ bạn đã chọn và không lưu gì cả.</string>
     <string name="aa_calllog_needed">Hãy cho phép nhật ký cuộc gọi, nếu không QuickBuds không thể biết ai đang gọi</string>
+    <string name="nav_rough">Vị trí đã lưu chỉ là ước chừng (±%1$d m): vị trí này lấy từ Wi-Fi hoặc mạng di động, không phải GPS. Hãy tìm trong khoảng cách đó.</string>
 </resources>

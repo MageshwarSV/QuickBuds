@@ -700,4 +700,5 @@
     <string name="aa_calllog_title">允许访问通话记录</string>
     <string name="aa_calllog_body">Android 只有在应用获得通话记录权限时，才会告诉应用谁在来电。QuickBuds 仅用号码与你所选的联系人比对，不保存任何内容。</string>
     <string name="aa_calllog_needed">请允许访问通话记录，否则 QuickBuds 无法看到是谁来电</string>
+    <string name="nav_rough">保存的位置不够精确(±%1$d 米):它来自 Wi-Fi 或移动网络,而非 GPS。请在此范围内查找。</string>
 </resources>

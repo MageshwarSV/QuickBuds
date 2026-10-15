@@ -785,5 +785,6 @@
     <string name="aa_calllog_title">Allow call logs</string>
     <string name="aa_calllog_body">Android shows an app who is calling only with the call log permission. QuickBuds uses the number only to check it against your chosen contacts, and keeps nothing.</string>
     <string name="aa_calllog_needed">Allow call logs, or QuickBuds cannot see who is calling</string>
+    <string name="nav_rough">The saved place is rough (±%1$d m): it came from Wi-Fi or the mobile network, not GPS. Look within that distance.</string>
     <string name="usage_range" translatable="false">%1$s – %2$s</string>
 </resources>

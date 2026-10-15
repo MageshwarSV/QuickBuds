@@ -698,4 +698,5 @@
     <string name="aa_calllog_title">Benarkan log panggilan</string>
     <string name="aa_calllog_body">Android hanya menunjukkan kepada apl siapa yang memanggil dengan kebenaran log panggilan. QuickBuds menggunakan nombor itu hanya untuk menyemaknya dengan kenalan yang anda pilih, dan tidak menyimpan apa-apa.</string>
     <string name="aa_calllog_needed">Benarkan log panggilan, atau QuickBuds tidak dapat melihat siapa yang memanggil</string>
+    <string name="nav_rough">Lokasi yang disimpan kurang tepat (±%1$d m): ia datang daripada Wi-Fi atau rangkaian mudah alih, bukan GPS. Cari dalam jarak itu.</string>
 </resources>

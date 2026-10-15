@@ -699,4 +699,5 @@
     <string name="aa_calllog_title">Anrufliste zulassen</string>
     <string name="aa_calllog_body">Android zeigt einer App nur mit der Berechtigung für die Anrufliste an, wer anruft. QuickBuds nutzt die Nummer nur zum Abgleich mit deinen ausgewählten Kontakten und speichert nichts.</string>
     <string name="aa_calllog_needed">Lasse die Anrufliste zu, sonst kann QuickBuds nicht sehen, wer anruft</string>
+    <string name="nav_rough">Der gespeicherte Ort ist ungenau (±%1$d m): Er stammt aus WLAN oder Mobilfunknetz, nicht von GPS. Suche in diesem Umkreis.</string>
 </resources>

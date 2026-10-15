@@ -699,4 +699,5 @@
     <string name="aa_calllog_title">Tillåt samtalsloggar</string>
     <string name="aa_calllog_body">Android visar bara för en app vem som ringer med behörigheten för samtalsloggar. QuickBuds använder numret endast för att jämföra det med dina valda kontakter och sparar ingenting.</string>
     <string name="aa_calllog_needed">Tillåt samtalsloggar, annars kan inte QuickBuds se vem som ringer</string>
+    <string name="nav_rough">Den sparade platsen är ungefärlig (±%1$d m): den kom från Wi-Fi eller mobilnätet, inte GPS. Leta inom det avståndet.</string>
 </resources>

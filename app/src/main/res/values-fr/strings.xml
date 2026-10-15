@@ -700,4 +700,5 @@
     <string name="aa_calllog_title">Autoriser les journaux d\'appels</string>
     <string name="aa_calllog_body">Android n\'indique à une appli qui appelle qu\'avec l\'autorisation d\'accès au journal d\'appels. QuickBuds utilise le numéro uniquement pour le comparer à vos contacts choisis et ne conserve rien.</string>
     <string name="aa_calllog_needed">Autorisez les journaux d\'appels, sinon QuickBuds ne peut pas voir qui appelle</string>
+    <string name="nav_rough">Le lieu enregistré est approximatif (±%1$d m) : il vient du Wi-Fi ou du réseau mobile, pas du GPS. Cherchez dans ce rayon.</string>
 </resources>

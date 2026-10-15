@@ -700,4 +700,5 @@
     <string name="aa_calllog_title">允許存取通話記錄</string>
     <string name="aa_calllog_body">Android 只有在應用程式取得通話記錄權限時，才會告知應用程式是誰來電。QuickBuds 僅以號碼與你所選的聯絡人比對，不會儲存任何內容。</string>
     <string name="aa_calllog_needed">請允許存取通話記錄，否則 QuickBuds 無法得知是誰來電</string>
+    <string name="nav_rough">儲存的位置不夠精確(±%1$d 公尺):它來自 Wi-Fi 或行動網路,而非 GPS。請在此範圍內尋找。</string>
 </resources>

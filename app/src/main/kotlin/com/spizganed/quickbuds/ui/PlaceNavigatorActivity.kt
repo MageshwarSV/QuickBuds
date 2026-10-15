@@ -129,6 +129,13 @@ class PlaceNavigatorActivity : Activity(), SensorEventListener {
         }, lp(2f))
         margin = text(13f)
         root.addView(margin, lp(2f))
+        // A saved place from Wi-Fi or the mobile network: say so, so its distance is not read as the buds' distance.
+        target.accuracyM?.takeIf { it > PlaceNavigation.ROUGH_M }?.let { acc ->
+            root.addView(text(13f).apply {
+                setTextColor(ThemeRes.palette(this@PlaceNavigatorActivity).accent)
+                this.text = getString(R.string.nav_rough, acc.roundToInt())
+            }, lp(8f))
+        }
 
         root.addView(button(R.string.nav_search_nearby, true) {
             startActivity(FindNearbyActivity.intent(this, place.address, place.name))

@@ -55,9 +55,19 @@ object PlaceNavigation {
     /** The smallest margin used for "near": GPS rarely does better than this. */
     const val MIN_NEAR_M = 8.0
 
-    /** Near when the distance is within the margin: GPS cannot tell the last metres then. Never "0 m". */
+    /**
+     * Android's accuracy is the radius of 68% confidence. For a 2-D normal error the 95% radius is 1.62 times
+     * that (sqrt(-2 ln 0.05) / sqrt(-2 ln 0.32)). Was: the 68% radius, so a phone that never moved, saved at
+     * ±100 m (Wi-Fi) and now at ±5 m (GPS), showed "152 m" instead of "near".
+     */
+    const val CONFIDENCE_95 = 1.62
+
+    /** Near when the distance is within the 95% margin: GPS cannot tell the last metres then. Never "0 m". */
     fun state(distanceM: Double, uncertaintyM: Double?): State =
-        if (distanceM <= max(uncertaintyM ?: MIN_NEAR_M, MIN_NEAR_M)) State.NEAR else State.GO
+        if (distanceM <= max((uncertaintyM ?: MIN_NEAR_M) * CONFIDENCE_95, MIN_NEAR_M)) State.NEAR else State.GO
+
+    /** Worse than this, a saved place came from Wi-Fi or mobile network, not GPS: the screen says so. */
+    const val ROUGH_M = 50f
 
     /** Whole metres below 1 km, then km with one decimal: "42 m", "1.3 km". The unit words come from strings. */
     fun splitDistance(distanceM: Double): Pair<Boolean, String> =

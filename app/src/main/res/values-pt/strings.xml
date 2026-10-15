@@ -700,4 +700,5 @@
     <string name="aa_calllog_title">Permitir registos de chamadas</string>
     <string name="aa_calllog_body">O Android só mostra a uma app quem está a ligar com a permissão de registo de chamadas. O QuickBuds usa o número apenas para o comparar com os contactos escolhidos e não guarda nada.</string>
     <string name="aa_calllog_needed">Permita os registos de chamadas, ou o QuickBuds não consegue ver quem está a ligar</string>
+    <string name="nav_rough">O local guardado é aproximado (±%1$d m): veio do Wi-Fi ou da rede móvel, não do GPS. Procure dentro dessa distância.</string>
 </resources>

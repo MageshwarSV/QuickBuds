@@ -699,4 +699,5 @@
     <string name="aa_calllog_title">Arama kayıtlarına izin ver</string>
     <string name="aa_calllog_body">Android, bir uygulamaya kimin aradığını yalnızca arama kaydı izniyle gösterir. QuickBuds numarayı yalnızca seçtiğin kişilerle karşılaştırmak için kullanır ve hiçbir şey saklamaz.</string>
     <string name="aa_calllog_needed">Arama kayıtlarına izin ver, yoksa QuickBuds kimin aradığını göremez</string>
+    <string name="nav_rough">Kayıtlı yer yaklaşık (±%1$d m): GPS\'ten değil, Wi-Fi veya mobil ağdan geldi. Bu mesafe içinde arayın.</string>
 </resources>

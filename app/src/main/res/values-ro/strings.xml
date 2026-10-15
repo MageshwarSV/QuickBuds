@@ -700,4 +700,5 @@
     <string name="aa_calllog_title">Permite jurnalele de apeluri</string>
     <string name="aa_calllog_body">Android arată unei aplicații cine sună doar cu permisiunea pentru jurnalul de apeluri. QuickBuds folosește numărul doar pentru a-l compara cu contactele alese și nu păstrează nimic.</string>
     <string name="aa_calllog_needed">Permite jurnalele de apeluri, altfel QuickBuds nu poate vedea cine sună</string>
+    <string name="nav_rough">Locul salvat este aproximativ (±%1$d m): provine din Wi-Fi sau din rețeaua mobilă, nu din GPS. Caută în această distanță.</string>
 </resources>

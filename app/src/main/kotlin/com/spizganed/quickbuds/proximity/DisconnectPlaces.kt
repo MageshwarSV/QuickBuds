@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
-import android.os.CancellationSignal
 import android.os.Handler
 import android.os.Looper
 import androidx.core.location.LocationManagerCompat
@@ -42,11 +41,18 @@ data class DisconnectPlace(
     /** The position after the disconnect, as a [Fix], or null. */
     val after: Fix? get() = if (lat != null && lng != null) Fix(lat, lng, accuracyM, fixAtMs ?: atMs) else null
 
-    /** Where to go: the position while connected if it is good or fair, else the one after, else whatever there is. */
+    /**
+     * Where to go: the position while connected (nearer the buds) if it is good or fair, unless the one after is
+     * at least twice as accurate; else the one after; else whatever there is.
+     */
     val target: Fix? get() {
         val c = connected
-        if (c != null && DisconnectPlaceRules.confidence(c, atMs) <= DisconnectPlaceRules.Confidence.FAIR) return c
-        return after ?: c
+        val a = after
+        if (c != null && DisconnectPlaceRules.confidence(c, atMs) <= DisconnectPlaceRules.Confidence.FAIR) {
+            val ca = c.accuracyM; val aa = a?.accuracyM
+            return if (a != null && ca != null && aa != null && aa * 2 <= ca) a else c
+        }
+        return a ?: c
     }
 }
 
@@ -215,28 +221,46 @@ object DisconnectPlaces {
                 lastKnown.atMs, DisconnectPlace.Note.LAST_KNOWN)
             else DisconnectPlace(now, address, name, note = DisconnectPlace.Note.NOT_FOUND)
         )
-        // Fused (Android 12+) mixes GPS, Wi-Fi and cell; else the network is fast indoors, GPS last.
-        val provider = listOfNotNull(
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) LocationManager.FUSED_PROVIDER else null,
-            LocationManager.NETWORK_PROVIDER, LocationManager.GPS_PROVIDER
-        ).firstOrNull { it in providers } ?: return fallback()
+        // GPS and fused (Android 12+) together, high accuracy: the best fix within 20 s, or at once when one is
+        // within GOOD_ENOUGH_M. Was: the first fix of one provider, often Wi-Fi at ±100 m indoors, which put a
+        // phone that never moved "152 m" from where it was.
+        val sources = listOfNotNull(
+            LocationManager.GPS_PROVIDER.takeIf { it in providers },
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && LocationManager.FUSED_PROVIDER in providers) LocationManager.FUSED_PROVIDER
+            else LocationManager.NETWORK_PROVIDER.takeIf { it in providers }
+        )
+        if (sources.isEmpty()) return fallback()
         val main = Handler(Looper.getMainLooper())
-        val cancel = CancellationSignal()
+        var best: Location? = null
         var finished = false
-        fun finish(loc: Location?) {
+        val listeners = ArrayList<androidx.core.location.LocationListenerCompat>()
+        fun finish() {
             if (finished) return
             finished = true
-            if (loc == null) return fallback()
+            listeners.forEach { l -> runCatching { LocationManagerCompat.removeUpdates(lm, l) } }
+            val loc = best ?: return fallback()
             save(DisconnectPlace(now, address, name, loc.latitude, loc.longitude, accuracy(loc), loc.time, DisconnectPlace.Note.FIX))
         }
-        main.postDelayed({ if (!finished) { cancel.cancel(); finish(null) } }, CURRENT_TIMEOUT_MS)
-        runCatching {
-            LocationManagerCompat.getCurrentLocation(lm, provider, cancel, { main.post(it) }) { loc -> main.post { finish(loc) } }
-        }.onFailure {
-            PacketLogger.error("disconnect place", it)
-            main.post { finish(null) }
+        fun offer(loc: Location) {
+            if (finished) return
+            val b = best
+            if (b == null || (accuracy(loc) ?: Float.MAX_VALUE) < (accuracy(b) ?: Float.MAX_VALUE)) best = loc
+            if ((accuracy(loc) ?: Float.MAX_VALUE) <= GOOD_ENOUGH_M) finish()
+        }
+        main.postDelayed({ finish() }, CURRENT_TIMEOUT_MS)
+        for (p in sources) {
+            val l = androidx.core.location.LocationListenerCompat { loc -> main.post { offer(loc) } }
+            listeners += l
+            runCatching {
+                LocationManagerCompat.requestLocationUpdates(lm, p,
+                    androidx.core.location.LocationRequestCompat.Builder(1_000L)
+                        .setQuality(androidx.core.location.LocationRequestCompat.QUALITY_HIGH_ACCURACY).build(), l, main.looper)
+            }.onFailure { PacketLogger.error("disconnect place $p", it) }
         }
     }
+
+    /** A fix this good ends the wait at once. */
+    private const val GOOD_ENOUGH_M = 20f
 
     private fun accuracy(l: Location) = if (l.hasAccuracy()) l.accuracy else null
 }

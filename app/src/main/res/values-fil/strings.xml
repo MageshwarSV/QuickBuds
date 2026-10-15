@@ -699,4 +699,5 @@
     <string name="aa_calllog_title">Payagan ang mga log ng tawag</string>
     <string name="aa_calllog_body">Ipinapakita lang ng Android sa isang app kung sino ang tumatawag kapag may pahintulot sa log ng tawag. Ginagamit ng QuickBuds ang numero para lang ihambing sa mga napili mong contact, at wala itong iniimbak.</string>
     <string name="aa_calllog_needed">Payagan ang mga log ng tawag, kung hindi ay hindi makikita ng QuickBuds kung sino ang tumatawag</string>
+    <string name="nav_rough">Hindi eksakto ang naka-save na lugar (±%1$d m): galing ito sa Wi-Fi o mobile network, hindi sa GPS. Maghanap sa loob ng layong iyon.</string>
 </resources>

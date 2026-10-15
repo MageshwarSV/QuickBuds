@@ -699,4 +699,5 @@
     <string name="aa_calllog_title">কল লগের অনুমতি দিন</string>
     <string name="aa_calllog_body">কে কল করছে তা Android শুধু কল লগের অনুমতি থাকলেই অ্যাপকে দেখায়। QuickBuds নম্বরটি শুধু আপনার নির্বাচিত পরিচিতিদের সাথে মেলাতে ব্যবহার করে এবং কিছুই সংরক্ষণ করে না।</string>
     <string name="aa_calllog_needed">কল লগের অনুমতি দিন, নইলে কে কল করছে তা QuickBuds দেখতে পারবে না</string>
+    <string name="nav_rough">সংরক্ষিত স্থানটি আনুমানিক (±%1$d মি): এটি Wi-Fi বা মোবাইল নেটওয়ার্ক থেকে এসেছে, GPS থেকে নয়। এই দূরত্বের মধ্যে খুঁজুন।</string>
 </resources>
