@@ -63,8 +63,11 @@ class DevToolsActivity : Activity() {
     /** 0 simple, 1 detailed. */
     private var mode = 0
 
-    /** Line count at the last paint — lets refreshLog() skip no-op rebuilds. */
-    private var lastLineCount = -1
+    /**
+     * [PacketLogger.added] at the last paint — lets refreshLog() skip no-op rebuilds. Was: the line count, which
+     * stays at the buffer's cap, so the live log froze.
+     */
+    private var lastAdded = -1L
 
     /** Polling task that refreshes the log every 500ms. */
     private val refreshTask = object : Runnable {
@@ -99,7 +102,7 @@ class DevToolsActivity : Activity() {
         actions.addView(action(R.drawable.ic_delete, "Clear") {
             PacketLogger.clear()
             logText.text = ""
-            lastLineCount = 0
+            lastAdded = PacketLogger.added
         })
         // Connection controls go through the service actions the rest of the app already uses:
         // this screen does not bind BudsService.
@@ -218,7 +221,7 @@ class DevToolsActivity : Activity() {
 
     private fun switchTo(m: Int) {
         mode = m
-        lastLineCount = -1
+        lastAdded = -1L
         tabs.selected = m
         refreshLog()
     }
@@ -238,7 +241,7 @@ class DevToolsActivity : Activity() {
         val needed = listOf(android.Manifest.permission.RECORD_AUDIO, android.Manifest.permission.READ_PHONE_STATE)
             .filter { checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED }
         if (needed.isNotEmpty()) {
-            showInLog("voice test needs the microphone and phone permissions: allow them, then tap Voice again")
+            showInLog("voice test needs the microphone and phone permissions: allow them")
             return requestPermissions(needed.toTypedArray(), 91)
         }
         val armed = com.spizganed.quickbuds.calls.VoiceProbe.armed(this)
@@ -270,15 +273,17 @@ class DevToolsActivity : Activity() {
 
     private fun showInLog(message: String) {
         logText.append("\n[dev] $message\n")
-        lastLineCount = PacketLogger.getLines().size
+        lastAdded = PacketLogger.added
         scroll.post { scroll.fullScroll(ScrollView.FOCUS_DOWN) }
     }
 
     private fun refreshLog() {
-        val lines = PacketLogger.getLines()
+        // Read before the lines: a line logged in between is painted on the next tick.
+        val added = PacketLogger.added
         // Nothing new since the last paint — don't rebuild or move the scroll.
-        if (lines.size == lastLineCount) return
-        lastLineCount = lines.size
+        if (added == lastAdded) return
+        lastAdded = added
+        val lines = PacketLogger.getLines()
 
         // Follow only if the user is already at the bottom.
         val wasAtBottom = !scroll.canScrollVertically(1)
@@ -344,6 +349,16 @@ class DevToolsActivity : Activity() {
             return false
         }
         return true
+    }
+
+    /** A granted request runs the action that asked: Voice (91) or Export (1002). */
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (grantResults.isEmpty() || grantResults.any { it != PackageManager.PERMISSION_GRANTED }) return
+        when (requestCode) {
+            91 -> voiceSheet()
+            1002 -> exportLog()
+        }
     }
 
     private fun exportLog() {

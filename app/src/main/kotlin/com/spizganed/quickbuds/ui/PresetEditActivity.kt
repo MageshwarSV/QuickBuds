@@ -34,6 +34,10 @@ class PresetEditActivity : Activity() {
     // Views of the expanded row, updated in place while the hue slider drags.
     private var liveSwatch: ColorPickerView.Swatch? = null
     private var liveHex: TextView? = null
+    /** The name field; onPause saves it. */
+    private var nameField: EditText? = null
+    /** Set once the preset is deleted, so onPause does not save it again. */
+    private var deleted = false
 
     private val p get() = ThemeRes.palette(this)
     private fun dp(v: Float) = ThemeRes.dp(this, v)
@@ -68,9 +72,9 @@ class PresetEditActivity : Activity() {
             }.apply { (layoutParams as LinearLayout.LayoutParams).marginStart = dp(10f) })
         })
 
-        // Name: saves on IME done or focus loss.
+        // Name: saves on IME done, focus loss or onPause (Back).
         root.addView(SettingRowFactory.sectionLabel(this, R.string.preset_name))
-        root.addView(EditText(this).apply {
+        root.addView(EditText(this).also { nameField = it }.apply {
             setText(preset.name)
             setTextColor(p.text)
             textSize = 16f
@@ -204,6 +208,12 @@ class PresetEditActivity : Activity() {
         v.post { buildColors() }
     }
 
+    /** Back leaves without IME done or focus loss: the rename is saved here. Was: it was lost. */
+    override fun onPause() {
+        super.onPause()
+        if (!deleted) nameField?.let { saveName(it.text.toString()) }
+    }
+
     private fun saveName(raw: String) {
         val name = raw.trim()
         if (name.isEmpty() || name == preset.name) return
@@ -230,6 +240,7 @@ class PresetEditActivity : Activity() {
             if (isActive) getString(R.string.preset_delete_active) else null,
             getString(R.string.preset_delete)
         ) {
+            deleted = true
             PaletteStore.deleteCustom(this, preset.id)
             finish()
         }

@@ -66,4 +66,25 @@ class BatteryDrainTest {
         assertNull(BatteryDrain.budsLevel(70, 60, leftInUse = false, rightInUse = false))
         assertEquals(70, BatteryDrain.budsLevel(70, -1, leftInUse = true, rightInUse = true))
     }
+
+    @Test fun anotherBudInUseStartsANewStretch() {
+        // Right alone (bits 2) 80 to 70, then the left comes out at 60: the 10% gap is not drain.
+        var s = listOf(0 to 80, 10 to 75, 50 to 70).fold(DrainState()) { st, (m, level) ->
+            BatteryDrain.onLevel(st, m * min, level, draining = true, buds = 2)
+        }
+        s = BatteryDrain.onLevel(s, 55 * min, 60, draining = true, buds = 3)
+        assertEquals(listOf(DrainRun(50 * min, 5, 40 * min)), s.runs)
+        assertEquals(60, s.lastLevel)
+        assertEquals(-1, s.firstDropLevel)
+        s = BatteryDrain.onLevel(s, 90 * min, 55, draining = true, buds = 3)
+        assertEquals(7.5, BatteryDrain.rate(s, 90 * min)!!.pctPerHour, 0.001)   // 5% in 40 min; the gap is left out
+        assertEquals(3, BatteryDrain.budsInUse(60, 70, leftInUse = true, rightInUse = true))
+    }
+
+    @Test fun aDockedBudIsNotInUse() {
+        assertEquals(false, BatteryDrain.inUse(wearStatus = 0, charging = false))   // docked and asleep
+        assertEquals(false, BatteryDrain.inUse(wearStatus = 4, charging = false))   // in the case
+        assertEquals(false, BatteryDrain.inUse(wearStatus = 3, charging = true))
+        assertEquals(true, BatteryDrain.inUse(wearStatus = 3, charging = false))    // in the ear
+    }
 }

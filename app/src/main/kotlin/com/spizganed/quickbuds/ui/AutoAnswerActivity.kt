@@ -72,6 +72,13 @@ class AutoAnswerActivity : Activity() {
         }
         delaySub = SettingRowFactory.subtitle(this, delayRow)
 
+        // A second call, during a call: answered too, or left to ring.
+        val secondSwitch = SettingRowFactory.buildSwitch(this, AutoAnswer.secondCall(this))
+        val secondRow = SettingRowFactory.build(this, 0, R.string.aa_second_title, R.string.aa_second_sub, secondSwitch) {
+            secondSwitch.performClick()
+        }
+        secondSwitch.setOnCheckedChangeListener { _, on -> AutoAnswer.setSecondCall(this, on) }
+
         voiceSwitch = SettingRowFactory.buildSwitch(this, voiceOn())
         val voiceRow = SettingRowFactory.build(this, R.drawable.ic_earbud, R.string.va_title, 0, voiceSwitch) { voiceSwitch.performClick() }
         voiceSub = SettingRowFactory.subtitle(this, voiceRow)
@@ -83,6 +90,7 @@ class AutoAnswerActivity : Activity() {
         root.addView(SettingRowFactory.card(this).apply {
             SettingRowFactory.addRow(this, row)
             SettingRowFactory.addRow(this, delayRow)
+            SettingRowFactory.addRow(this, secondRow)
             SettingRowFactory.addRow(this, voiceRow)
             SettingRowFactory.addRow(this, tryRow)
         })
@@ -129,7 +137,22 @@ class AutoAnswerActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        // Back from Android's settings: the permissions may have changed.
+        // Back from Android's settings or a permission dialog: the permissions may have changed, and a permission
+        // granted again changes no setting, so the service looks again.
+        BudsService.syncCalls(this)
+        live.resume()
+        repaint()
+    }
+
+    override fun onPause() {
+        live.pause()
+        super.onPause()
+    }
+
+    /** Kept up to date while open: Bike mode from the tile, the microphone, the permissions. */
+    private val live = LiveScreen(this) { repaint() }
+
+    private fun repaint() {
         quietSwitch(isOn())
         quietVoiceSwitch(voiceOn())
         paint()

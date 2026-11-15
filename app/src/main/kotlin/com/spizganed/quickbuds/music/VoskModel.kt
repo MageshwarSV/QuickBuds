@@ -22,8 +22,18 @@ object VoskModel {
 
     private fun dir(c: Context) = File(c.filesDir, NAME)
 
-    /** Downloaded and unpacked: the parts Vosk loads are there. */
-    fun ready(c: Context) = File(dir(c), "am/final.mdl").isFile && File(dir(c), "conf/model.conf").isFile
+    /** Unpacking goes here first; the folder becomes [dir] only when complete. */
+    private fun unpacking(c: Context) = File(c.filesDir, "$NAME.unpacking")
+
+    /** Written last into a complete model. */
+    private const val COMPLETE = ".complete"
+
+    /**
+     * Downloaded and unpacked. A model from 4.10.13 has no [COMPLETE] mark: the files Vosk loads first count then,
+     * and one that does not load is deleted by the listener, so it can be downloaded again.
+     */
+    fun ready(c: Context) = File(dir(c), COMPLETE).isFile ||
+        (File(dir(c), "am/final.mdl").isFile && File(dir(c), "conf/model.conf").isFile)
 
     @Volatile var downloading = false
         private set
@@ -64,10 +74,20 @@ object VoskModel {
                     conn.disconnect()
                 }
                 if (zip.length() != SIZE) error("size ${zip.length()}, expected $SIZE")
-                unzip(zip, c.filesDir)
+                // Into a separate folder, then moved: a cut-short unpacking never looks ready.
+                val tmp = unpacking(c)
+                tmp.deleteRecursively()
+                unzip(zip, tmp)
+                val unpacked = File(tmp, NAME)
+                if (!File(unpacked, "am/final.mdl").isFile) error("no model in the archive")
+                File(unpacked, COMPLETE).writeText("1")
+                dir(c).deleteRecursively()
+                if (!unpacked.renameTo(dir(c))) error("model not moved into place")
+                tmp.deleteRecursively()
                 ready(c)
             }.onFailure { PacketLogger.error("voice music model download", it) }.getOrDefault(false)
             zip.delete()
+            unpacking(c).deleteRecursively()
             downloading = false
             PacketLogger.log("VOICE MUSIC: speech model ${if (ok) "ready" else "download failed"}")
             if (ok) progress(100)

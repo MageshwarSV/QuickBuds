@@ -871,7 +871,8 @@ open class QuickBudsWidget(private val kind: Kind) : AppWidgetProvider() {
          * does not start the service ([BudsService.backgroundAllowed]), so it opens the app instead.
          */
         private fun connectPI(context: Context): PendingIntent {
-            if (!BudsService.backgroundAllowed(context)) return openAppPI(context)
+            // Without the Bluetooth permission the service cannot start: the app asks for it.
+            if (!BudsService.backgroundAllowed(context) || !canStartBudsService(context)) return openAppPI(context)
             val intent = Intent(context, BudsService::class.java)
                 .setAction(BudsService.ACTION_FORCE_CONNECT)
                 .putExtra(BudsService.EXTRA_WITH_AUDIO, true)

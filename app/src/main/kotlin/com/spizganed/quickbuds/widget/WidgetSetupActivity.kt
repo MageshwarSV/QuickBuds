@@ -39,7 +39,11 @@ class WidgetSetupActivity : Activity() {
             setPadding(ThemeRes.dp(this@WidgetSetupActivity, 4f), 0, 0, ThemeRes.dp(this@WidgetSetupActivity, 12f))
         })
         val keys = WidgetSettings.BUTTONS.filter { WidgetSettings.available(this, it) }
-        val picked = WidgetSettings.buttons(this, id).filter { it in keys }.toMutableSet()
+        val saved = WidgetSettings.buttons(this, id)
+        val picked = saved.filter { it in keys }.toMutableSet()
+        // Saved buttons these buds do not have (other buds, or not known yet): kept while slots are free.
+        // Was: every change erased them.
+        val hidden = saved.filter { it !in keys }
         val card = SettingRowFactory.card(this)
         for (key in keys) {
             val (icon, title) = ROWS.getValue(key)
@@ -47,7 +51,8 @@ class WidgetSetupActivity : Activity() {
             switches[key] = sw
             sw.setOnCheckedChangeListener { v, on ->
                 if (on) picked.add(key) else picked.remove(key)
-                WidgetSettings.setButtons(this, id, keys.filter { it in picked })
+                val keep = hidden.take((WidgetSettings.MAX_BUTTONS - picked.size).coerceAtLeast(0))
+                WidgetSettings.setButtons(this, id, WidgetSettings.BUTTONS.filter { it in picked || it in keep })
                 QuickBudsWidget.refreshAll(this)
                 Haptics.commit(v)
                 limit(picked.size)

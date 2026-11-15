@@ -109,7 +109,7 @@ class QuickBudsApp : Application() {
             override fun onActivityResumed(a: Activity) {
                 // Voice answer: Android lets the background service keep the microphone only if it takes it while
                 // an app screen is open. Now is such a moment.
-                if ((com.spizganed.quickbuds.calls.VoiceAnswer.switchedOn(a) || com.spizganed.quickbuds.music.VoiceMusic.switchedOn(a)) &&
+                if (BudsService.micWanted(a) &&
                     a.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
                     runCatching {
                         a.startService(android.content.Intent(a, com.spizganed.quickbuds.bluetooth.BudsService::class.java)
@@ -127,7 +127,9 @@ class QuickBudsApp : Application() {
                 // Background service off: leaving the app (no activity visible) stops the service.
                 // MainActivity unbinds in its own onStop, so nothing keeps it alive; the service
                 // closes the RFCOMM link in onDestroy.
-                if (--started == 0 && !BudsService.backgroundAllowed(a)) {
+                // A screen rebuilt (theme, dark mode, language) stops before its new copy starts: not leaving.
+                // Was: each rebuild stopped the service and dropped the link.
+                if (--started == 0 && !a.isChangingConfigurations && !BudsService.backgroundAllowed(a)) {
                     runCatching { a.applicationContext.stopService(Intent(a, BudsService::class.java)) }
                 }
             }

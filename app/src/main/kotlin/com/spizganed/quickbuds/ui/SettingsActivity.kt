@@ -354,6 +354,19 @@ class SettingsActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        live.resume()
+        refresh()
+    }
+
+    override fun onPause() {
+        live.pause()
+        super.onPause()
+    }
+
+    /** Kept up to date while open: Bike mode from the tile, auto-answer, usage. */
+    private val live = LiveScreen(this) { refresh() }
+
+    private fun refresh() {
         themeSubtitle?.text = ThemeRes.palette(this).name
         callsSubtitle?.text = AutoAnswerActivity.summary(this)
         bikeSubtitle?.text = BikeModeActivity.summary(this)

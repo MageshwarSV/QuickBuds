@@ -50,6 +50,15 @@ class DisconnectPlaceRulesTest {
         assertEquals(2.0, best!!.lat, 0.0)
     }
 
+    @Test fun aFixFromBeforeTheConnectIsNotWhileConnected() {
+        val now = 100 * 60_000L
+        val fix = Fix(1.0, 1.0, 10f, now - 5 * 60_000L)
+        assertNull(DisconnectPlaceRules.whileConnected(fix, now, connectedAtMs = now - 2 * 60_000L))
+        assertEquals(fix, DisconnectPlaceRules.whileConnected(fix, now, connectedAtMs = now - 10 * 60_000L))
+        assertEquals(fix, DisconnectPlaceRules.whileConnected(fix, now, connectedAtMs = null))   // connect not known
+        assertNull(DisconnectPlaceRules.whileConnected(Fix(1.0, 1.0, 10f, now - 16 * 60_000L), now, null))   // stale
+    }
+
     @Test fun noRecentFixIsNone() {
         val now = 100 * 60_000L
         assertNull(DisconnectPlaceRules.bestLastKnown(listOf(Fix(1.0, 1.0, 5f, now - 11 * 60_000L)), now))

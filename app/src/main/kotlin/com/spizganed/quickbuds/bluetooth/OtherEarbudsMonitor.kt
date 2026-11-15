@@ -98,6 +98,12 @@ class OtherEarbudsMonitor(private val context: Context) {
     private val handler = Handler(Looper.getMainLooper())
 
     /**
+     * Set by [destroy]. A Bluetooth answer ([ConnectedAudio.query], up to 3 s) that comes after it changes nothing.
+     * Was: it tracked devices again, and their monitors and cards stayed with nobody to remove them.
+     */
+    private var destroyed = false
+
+    /**
      * Every [HEARTBEAT_MS]: Bluetooth itself says which earbuds are still connected ([verify]); only those get a
      * last-seen update. Was: an update for every tracked device, which restarted the usage session of earbuds whose
      * disconnect broadcast never arrived, and kept their battery card up.
@@ -118,7 +124,7 @@ class OtherEarbudsMonitor(private val context: Context) {
     fun verify(then: (List<Tracked>) -> Unit = {}) {
         if (tracked.isEmpty()) return
         ConnectedAudio.query(context) { connected ->
-            if (connected == null) return@query
+            if (connected == null || destroyed) return@query
             for (address in tracked.keys.toList()) {
                 if (address in connected) continue
                 PacketLogger.log("OTHER EARBUDS: no longer connected (checked with Bluetooth)")
@@ -136,7 +142,7 @@ class OtherEarbudsMonitor(private val context: Context) {
     }
 
     fun onConnected(device: BluetoothDevice) {
-        if (device.address in tracked || BudsDevice.isBuds(context, device)) return
+        if (destroyed || device.address in tracked || BudsDevice.isBuds(context, device)) return
         val name = AudioDevice.name(device)
         val kind = DeviceCatalog.kindOf(name, speakerClass = AudioDevice.isSpeaker(device))
         // A speaker stays where it is put: no loss warning for it. Nor for a hands-free or hi-fi device of unknown
@@ -212,11 +218,13 @@ class OtherEarbudsMonitor(private val context: Context) {
     /** After the service starts: earbuds already connected (no broadcast came for them in this process). */
     fun discover() {
         ConnectedAudio.query(context) { connected ->
+            if (destroyed) return@query
             connected?.values?.filter { AudioDevice.isAudio(it) }?.forEach { onConnected(it) }
         }
     }
 
     fun destroy() {
+        destroyed = true
         fastPair.stop()
         onAllDisconnected(DropReason.USER)
         handler.removeCallbacksAndMessages(null)

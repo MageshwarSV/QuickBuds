@@ -47,4 +47,11 @@ class AutoAnswerTest {
         assertTrue(AutoAnswer.callerAllowed(AutoAnswer.Filter.ALL, null, listOf(mom)))
         assertTrue(AutoAnswer.callerAllowed(AutoAnswer.Filter.ALL, "9876543210", emptyList()))
     }
+
+    @Test fun aSecondCallOnlyWhenChosen() {
+        assertEquals(AutoAnswer.Ring.FIRST, AutoAnswer.ring(inCall = false, secondCall = false))
+        assertEquals(AutoAnswer.Ring.FIRST, AutoAnswer.ring(inCall = false, secondCall = true))
+        assertEquals(AutoAnswer.Ring.SECOND_IGNORE, AutoAnswer.ring(inCall = true, secondCall = false))
+        assertEquals(AutoAnswer.Ring.SECOND_ANSWER, AutoAnswer.ring(inCall = true, secondCall = true))
+    }
 }

@@ -400,6 +400,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
         renderAnc(initial.ancMode)
         renderWear(initial)
         WidgetStateStore.addListener(storeListener)
+        getSharedPreferences(ThemeRes.PREFS_NAME, MODE_PRIVATE).registerOnSharedPreferenceChangeListener(backgroundListener)
         devicesTile.setBuds(budsEntry(initial))
         devicesTile.start()
 
@@ -548,6 +549,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
 
     override fun onDestroy() {
         WidgetStateStore.removeListener(storeListener)
+        getSharedPreferences(ThemeRes.PREFS_NAME, MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(backgroundListener)
         Usage.removeListener(usageChanged)
         devicesTile.stop()
         unbind()
@@ -557,8 +559,20 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
     /** Set when onStop let go of the service, so onStart binds again (not on the first start). */
     private var unboundOnStop = false
 
+    /** False between onStop and onStart. */
+    private var started = false
+
+    /**
+     * Background service turned off while this screen is stopped (Main › Settings): let go now,
+     * as onStop does. Was: the binding kept the service and the link up after Home.
+     */
+    private val backgroundListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == BudsService.PREF_BACKGROUND && !started) releaseIfBackgroundOff()
+    }
+
     override fun onStart() {
         super.onStart()
+        started = true
         if (unboundOnStop) {
             unboundOnStop = false
             startAndBindServiceIfPermitted()
@@ -566,14 +580,21 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
     }
 
     override fun onStop() {
-        // Background service off: a bound main screen kept the service (and the link) alive after
-        // Home, and on Android 12+ Back does not destroy it either. Let go here; QuickBudsApp stops
-        // the service once no screen is visible, and onStart binds (and connects) again.
+        started = false
+        releaseIfBackgroundOff()
+        super.onStop()
+    }
+
+    /**
+     * Background service off: a bound main screen kept the service (and the link) alive after
+     * Home, and on Android 12+ Back does not destroy it either. Let go here; QuickBudsApp stops
+     * the service once no screen is visible, and onStart binds (and connects) again.
+     */
+    private fun releaseIfBackgroundOff() {
         if (isBound && !BudsService.backgroundAllowed(this)) {
             unbind()
             unboundOnStop = true
         }
-        super.onStop()
     }
 
     private fun unbind() {
@@ -857,6 +878,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
      * different bits (0x0800 vs 0x0080) and report them differently too.
      */
     private fun selectAnc(mode: String) {
+        if (!hasManager()) return
         manager.sendAnc(mode)
         activeAncMode = mode
         syncWidgetState()
@@ -864,6 +886,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
     }
 
     private fun toggleGameMode(next: Boolean) {
+        if (!hasManager()) { gameSwitch?.let { setSwitchQuiet(it, gameModeOn) }; return }
         manager.setGameMode(next)
         gameModeOn = next
         syncWidgetState()
@@ -916,6 +939,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
         windSwitch = wind
         wind.setOnCheckedChangeListener { _, isChecked ->
             if (syncingFeatures) return@setOnCheckedChangeListener
+            if (!hasManager()) return@setOnCheckedChangeListener setSwitchQuiet(wind, !isChecked)
             manager.setFeatures(OpoProtocol.FEATURE_WIND_NOISE to isChecked)
         }
         addRow("wind",
@@ -952,6 +976,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
         hires.setOnCheckedChangeListener { _, isChecked ->
             if (syncingFeatures) return@setOnCheckedChangeListener
             setSwitchQuiet(hires, !isChecked)
+            if (!hasManager()) return@setOnCheckedChangeListener
             if (codecPicker()) {
                 val codec = manager.codec ?: return@setOnCheckedChangeListener
                 return@setOnCheckedChangeListener confirmReconnect(R.string.codec_msg_reconnect) {
@@ -976,7 +1001,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
         }
         val hiresRow = SettingRowFactory.build(
             this, R.drawable.ic_hires, R.string.row_hires_title, R.string.row_hires_sub_off, hires
-        ) { if (codecPicker()) codecSheet() else hires.performClick() }
+        ) { if (codecPicker()) { if (hasManager()) codecSheet() } else hires.performClick() }
         hiresSubtitle = hiresRow.findViewWithTag<TextView>(SettingRowFactory.SUBTITLE_TAG)
         addRow("hires", hiresRow)
 
@@ -984,11 +1009,12 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
         spatialSwitch = spatial
         spatial.setOnCheckedChangeListener { _, isChecked ->
             if (syncingFeatures) return@setOnCheckedChangeListener
+            if (!hasManager()) return@setOnCheckedChangeListener setSwitchQuiet(spatial, !isChecked)
             setSpatial(if (isChecked) 1 else 0)
         }
         val spatialRow = SettingRowFactory.build(
             this, R.drawable.ic_spatial, R.string.row_spatial_title, R.string.row_spatial_sub, spatial
-        ) { if (spatialHeadTracking()) spatialSheet() else spatial.performClick() }
+        ) { if (spatialHeadTracking()) { if (hasManager()) spatialSheet() } else spatial.performClick() }
         spatialSubtitle = spatialRow.findViewWithTag<TextView>(SettingRowFactory.SUBTITLE_TAG)
         addRow("spatial", spatialRow)
 
@@ -998,6 +1024,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
         goldenSwitch = golden
         golden.setOnCheckedChangeListener { _, isChecked ->
             if (syncingFeatures) return@setOnCheckedChangeListener
+            if (!hasManager()) return@setOnCheckedChangeListener setSwitchQuiet(golden, !isChecked)
             manager.setFeatures(OpoProtocol.FEATURE_GOLDEN_SOUND to isChecked)
         }
         addRow("golden",
@@ -1045,7 +1072,13 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
         syncingFeatures = false
     }
 
-    private fun featureOn(id: Int) = manager.featureStates[id] == 1
+    /**
+     * True once the service has bound. A stale "connected" store can enable the controls
+     * before that (permission refused), so every control checks this before it uses [manager].
+     */
+    private fun hasManager() = ::manager.isInitialized
+
+    private fun featureOn(id: Int) = hasManager() && manager.featureStates[id] == 1
 
     /**
      * Spatial audio as HeyMelody picks it (PROTOCOL.md §9): buds whose bitmap has `0x012A` (or a
@@ -1065,7 +1098,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
     private fun spatialHeadTracking() =
         ModelCatalog.current(this)?.json?.optJSONArray("spatialTypes")?.toString()?.contains('2') == true
 
-    private fun spatialOn() = if (spatialByType()) (manager.spatialType ?: 0) != 0
+    private fun spatialOn() = if (spatialByType()) hasManager() && (manager.spatialType ?: 0) != 0
         else featureOn(OpoProtocol.FEATURE_SPATIAL_SOUND)
 
     /** Spatial and Hi-Res never coexist: turning spatial on with Hi-Res on asks first, then drops Hi-Res. */
@@ -1131,7 +1164,7 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
 
     /** Switch and (head-tracking models) subtitle from the buds' last state. */
     private fun paintSpatial() {
-        if (connectedUi == false) return
+        if (connectedUi == false || !hasManager()) return
         spatialSwitch?.let { setSwitchQuiet(it, spatialOn()) }
         if (spatialHeadTracking()) spatialSubtitle?.text = spatialLabel(manager.spatialType ?: 0)
         else spatialSubtitle?.setText(R.string.row_spatial_sub)
@@ -1342,12 +1375,12 @@ class MainActivity : Activity(), BudsConnectionManager.Listener {
     @SuppressLint("MissingPermission")
     private fun connectDirectly() {
         if (!isBound) {
-            toast("Service not bound yet.")
+            toast(getString(R.string.conn_connecting))
             return
         }
         val adapter = getSystemService(BluetoothManager::class.java)?.adapter
         if (adapter == null || !adapter.isEnabled) {
-            toast("Bluetooth is off.")
+            toast(getString(R.string.find_state_bt_off_t))
             return
         }
         val device = BudsDevice.find(this)

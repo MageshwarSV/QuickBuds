@@ -194,6 +194,10 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".ui.BatteryLifeActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".ui.AutoAnswerActivity"
             android:exported="false" />
         <activity
@@ -359,16 +363,10 @@
             </intent-filter>
         </activity>
 
+        <!-- The widget's PendingIntents name this class, so other apps need no access. -->
         <receiver
             android:name=".widget.WidgetActionReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.spizganed.quickbuds.widget.ANC_CYCLE" />
-                <action android:name="com.spizganed.quickbuds.widget.TRANS" />
-                <action android:name="com.spizganed.quickbuds.widget.OFF" />
-                <action android:name="com.spizganed.quickbuds.widget.GAME_TOGGLE" />
-            </intent-filter>
-        </receiver>
+            android:exported="false" />
 
     </application>
 

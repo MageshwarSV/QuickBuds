@@ -44,6 +44,10 @@ object PacketLogger {
     /** In-memory ring buffer for the Dev Tools screen. */
     private val buffer = CopyOnWriteArrayList<String>()
 
+    /** Lines logged since the process started. The buffer stops growing at its cap; this does not. */
+    @Volatile var added = 0L
+        private set
+
     fun init(context: Context) {
         if (logFile == null) {
             logFile = File(context.getExternalFilesDir(null), "packets.log")
@@ -56,6 +60,7 @@ object PacketLogger {
         val line = "${ts.format(Date())}  $msg"
         Log.d(TAG, line)
         buffer.add(line)
+        added++
         while (buffer.size > MAX_BUFFER_LINES) {
             buffer.removeAt(0)
         }

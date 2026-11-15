@@ -95,6 +95,13 @@ object DisconnectPlaceRules {
         }
     }
 
+    /**
+     * The buffered fix [f] as the position while connected: not older than [STALE_MS] at [nowMs], and taken after
+     * the connect at [connectedAtMs] (null: not known). Was: a fix from before this connection counted too.
+     */
+    fun whileConnected(f: Fix?, nowMs: Long, connectedAtMs: Long?): Fix? =
+        f?.takeIf { nowMs - it.atMs <= STALE_MS && (connectedAtMs == null || it.atMs >= connectedAtMs) }
+
     /** The newest fix not older than [LAST_KNOWN_MAX_AGE_MS]; among equals in age, the most accurate. */
     fun bestLastKnown(fixes: List<Fix>, nowMs: Long): Fix? = fixes
         .filter { nowMs - it.atMs in 0..LAST_KNOWN_MAX_AGE_MS }
@@ -116,6 +123,14 @@ object DisconnectPlaces {
     private fun prefs(c: Context) = c.getSharedPreferences(ThemeRes.PREFS_NAME, Context.MODE_PRIVATE)
 
     fun enabled(c: Context) = prefs(c).getBoolean(KEY_ENABLED, false)
+
+    private const val KEY_CONNECTED_AT = "placeConnectedAt:"
+
+    /** Device [address] connected (ACL): a buffered fix older than this is not from this connection. */
+    fun connected(c: Context, address: String) =
+        prefs(c).edit().putLong(KEY_CONNECTED_AT + address, System.currentTimeMillis()).apply()
+
+    private fun connectedAt(c: Context, address: String) = prefs(c).getLong(KEY_CONNECTED_AT + address, 0L).takeIf { it > 0 }
 
     fun setEnabled(c: Context, on: Boolean) = prefs(c).edit().putBoolean(KEY_ENABLED, on).apply()
 
@@ -205,7 +220,7 @@ object DisconnectPlaces {
         if (!enabled(c)) return done()
         val now = System.currentTimeMillis()
         // The phone's last position while still connected, if one is recent enough to mean something.
-        val whileConnected = LocationBuffer.latest(c)?.first?.takeIf { now - it.atMs <= DisconnectPlaceRules.STALE_MS }
+        val whileConnected = DisconnectPlaceRules.whileConnected(LocationBuffer.latest(c)?.first, now, connectedAt(c, address))
         fun save(entry: DisconnectPlace) { add(c, entry.copy(connected = whileConnected)); done() }
         if (!foregroundPermitted(c)) return save(DisconnectPlace(now, address, name, note = DisconnectPlace.Note.NO_PERMISSION))
         val lm = c.getSystemService(LocationManager::class.java)

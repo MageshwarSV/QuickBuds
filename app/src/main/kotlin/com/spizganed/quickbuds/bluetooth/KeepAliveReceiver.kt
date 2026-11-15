@@ -31,7 +31,11 @@ class KeepAliveReceiver : BroadcastReceiver() {
             PacketLogger.log("USAGE: ${action.substringAfterLast('.')} transport=${intent.getIntExtra(EXTRA_TRANSPORT, -1)}")
         }
         when (action) {
-            BluetoothDevice.ACTION_ACL_CONNECTED -> recordUsage { Usage.connected(context, device, newLink = true, done = it) }
+            BluetoothDevice.ACTION_ACL_CONNECTED -> {
+                // Disconnect locations: only a position from after this connect counts as "while connected".
+                com.spizganed.quickbuds.proximity.DisconnectPlaces.connected(context, device.address)
+                recordUsage { Usage.connected(context, device, newLink = true, done = it) }
+            }
             // The same disconnect also saves where the phone is (Disconnect locations, off by default), and ends
             // the battery life stretch being measured.
             BluetoothDevice.ACTION_ACL_DISCONNECTED -> recordAll(
@@ -114,6 +118,8 @@ class KeepAliveReceiver : BroadcastReceiver() {
         val serviceIntent = Intent(context, BudsService::class.java)
         serviceIntent.action = BudsService.ACTION_FORCE_CONNECT
         serviceIntent.putExtra(BudsService.EXTRA_DELAY_MS, delayMs)
-        context.startService(serviceIntent)
+        // Android 8-11 refuses a background start (after a reboot, before the app runs): log it, as otherEarbuds does.
+        runCatching { context.startService(serviceIntent) }
+            .onFailure { Log.d("BudsConn", "KeepAlive: service start refused: ${it.message}") }
     }
 }

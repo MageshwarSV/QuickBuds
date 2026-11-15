@@ -16,8 +16,8 @@ import java.util.Locale
 
 /**
  * Voice answer: a ringing call from a known contact is announced in the earbuds in Tamil ("Ashraf அழைக்கிறார்.
- * எடுக்கட்டுமா?"), then a spoken reply decides: YES answers, NO declines. Anything else goes to auto-answer when it
- * is on, or lets the phone ring.
+ * எடுக்கட்டுமா?"), then a spoken reply decides: YES answers, NO declines. An unclear reply listens again; with
+ * auto-answer on, [LISTEN_WITH_AUTO_MS] without a clear reply goes to auto-answer. Else the phone rings on.
  *
  * Silent, and the phone rings as usual, when: the feature is off; a permission is missing; the number is hidden
  * or not in the contacts (no prompt for strangers); the caller does not pass auto-answer's contact filter (one
@@ -37,6 +37,11 @@ object VoiceAnswer {
 
     /** The prompt, Tamil by the developer's choice: "<name> is calling. Shall I take it?". */
     fun prompt(name: String) = "$name அழைக்கிறார். எடுக்கட்டுமா?"
+
+    /** With auto-answer on, by the developer's choice: no clear reply in this long, auto-answer answers. */
+    const val LISTEN_WITH_AUTO_MS = 20_000L
+    /** Without auto-answer: listening ends when the call stops ringing, at the latest after this long. */
+    const val LISTEN_MS = 60_000L
     val PROMPT_LOCALE: Locale = Locale("ta", "IN")
 
     private fun prefs(c: Context) = c.getSharedPreferences(ThemeRes.PREFS_NAME, Context.MODE_PRIVATE)
@@ -76,10 +81,16 @@ object VoiceAnswer {
 
     // --- One call ---
 
+    /** The question about a ringing call. */
     private var session: VoiceSession? = null
+    /** Try it now: apart from [session], so a call's end does not cancel it. */
+    private var trySession: VoiceSession? = null
 
-    /** Asking about a ringing call now: voice music's "Hey Jarvis" stays out of the way. */
-    val asking: Boolean get() = session != null
+    /** Asking now (a call or Try it now): voice music's "Hey Jarvis" stays out of the way. */
+    val asking: Boolean get() = session != null || trySession != null
+
+    /** Called on the main thread when [asking] changes: voice music stops or listens again. */
+    var askingChanged: (() -> Unit)? = null
 
     /**
      * A call rings with a known [number]. [headsetName]: a device connected for calls, or null. True when a prompt
@@ -101,15 +112,32 @@ object VoiceAnswer {
         }
         val s = VoiceSession(c)
         session = s
+        // Voice music lets go of the earbud microphone first, so it does not clear the one this session sets.
+        askingChanged?.invoke()
         PacketLogger.log("VOICE ANSWER: asking about a contact's call on $headsetName")
-        s.run(prompt(name!!), PROMPT_LOCALE) { answer, _ -> act(c, answer, undecided) }
+        var started = false
+        var early: String? = null
+        // Unclear replies listen again: with auto-answer on, until it may answer; else while the call rings.
+        val listen = if (AutoAnswer.enabled(c)) LISTEN_WITH_AUTO_MS else LISTEN_MS
+        s.run(prompt(name!!), PROMPT_LOCALE, listen) { answer, detail -> if (started) act(c, answer, undecided) else early = detail }
+        started = true
+        // It could not ask at all (no on-device recognizer, no Bluetooth output): as if voice answer were off, so
+        // auto-answer keeps its own delay. Was: the call was answered at once.
+        early?.let {
+            session = null
+            askingChanged?.invoke()
+            PacketLogger.log("VOICE ANSWER: no prompt ($it)")
+            return false
+        }
         return true
     }
 
     /** The call stopped ringing (answered by hand, rejected, ended): stop listening. */
     fun onStoppedRinging() {
-        session?.cancel()
+        val s = session ?: return
+        s.cancel()
         session = null
+        askingChanged?.invoke()
     }
 
     @SuppressLint("MissingPermission")
@@ -131,13 +159,19 @@ object VoiceAnswer {
             else PacketLogger.log("VOICE ANSWER: decline needs Android 9")
             Action.NONE -> if (ringing) { PacketLogger.log("VOICE ANSWER: no clear reply"); undecided() }
         }
+        askingChanged?.invoke()
     }
 
     /** Settings › Try it now: the prompt and one listen, no call involved. [result] gets the answer and what was heard. */
     fun tryNow(context: Context, result: (VoicePhrases.Answer, String) -> Unit) {
-        if (session != null) return
+        if (asking) return
         val s = VoiceSession(context)
-        session = s
-        s.run(prompt("சோதனை"), PROMPT_LOCALE) { answer, detail -> session = null; result(answer, detail) }
+        trySession = s
+        askingChanged?.invoke()
+        s.run(prompt("சோதனை"), PROMPT_LOCALE) { answer, detail ->
+            trySession = null
+            askingChanged?.invoke()
+            result(answer, detail)
+        }
     }
 }

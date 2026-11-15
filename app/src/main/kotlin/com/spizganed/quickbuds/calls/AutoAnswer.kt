@@ -13,6 +13,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.telecom.TelecomManager
 import android.telephony.TelephonyManager
 import com.spizganed.quickbuds.bluetooth.BudsService
@@ -37,6 +38,25 @@ object AutoAnswer {
     fun enabled(c: Context) = prefs(c).getBoolean(KEY_ENABLED, false) && permitted(c) && BudsService.backgroundAllowed(c)
 
     fun delaySeconds(c: Context) = prefs(c).getInt(KEY_DELAY, DEFAULT_DELAY).takeIf { it in DELAYS } ?: DEFAULT_DELAY
+
+    /**
+     * A second call (it rings during a call): auto-answer answers it too, and Android puts the current call on
+     * hold. Off by default. Was: it was always answered, as a first call.
+     */
+    const val KEY_SECOND_CALL = "autoAnswerSecondCall"
+
+    fun secondCall(c: Context) = prefs(c).getBoolean(KEY_SECOND_CALL, false)
+
+    fun setSecondCall(c: Context, on: Boolean) = prefs(c).edit().putBoolean(KEY_SECOND_CALL, on).apply()
+
+    /** What a call that rings gets. Pure. [inCall]: another call is already on. Voice answer never asks then. */
+    enum class Ring { FIRST, SECOND_ANSWER, SECOND_IGNORE }
+
+    fun ring(inCall: Boolean, secondCall: Boolean): Ring = when {
+        !inCall -> Ring.FIRST
+        secondCall -> Ring.SECOND_ANSWER
+        else -> Ring.SECOND_IGNORE
+    }
 
     fun permitted(c: Context) = PERMISSIONS.all { c.checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }
 
@@ -118,42 +138,56 @@ class AutoAnswerMonitor(private val context: Context) {
         override fun onReceive(c: Context, intent: Intent) {
             when (intent.getStringExtra(TelephonyManager.EXTRA_STATE)) {
                 TelephonyManager.EXTRA_STATE_RINGING -> {
+                    // The probe measures this call: its second broadcast must not auto-answer it either.
+                    if (probing) return
                     // Voice answer probe (Dev tools): measures this one call, answers nothing.
                     if (VoiceProbe.armed(context) && !VoiceAnswer.enabled(context)) {
                         VoiceProbe.setArmed(context, false)
+                        probing = true
                         handler.removeCallbacks(answer)
                         VoiceProbe.run(context, "ringing")
                         onProbeDone()
                         return
                     }
+                    // A second call rings during a call: answered only when the setting says so, and never with a
+                    // question in the earbuds (Android gives the microphone to the call).
+                    val ring = AutoAnswer.ring(inCall, AutoAnswer.secondCall(context))
+                    if (ring == AutoAnswer.Ring.SECOND_IGNORE) {
+                        if (ringingAt == 0L) PacketLogger.log("CALL: second call during a call: not answered (setting off)")
+                        ringingAt = SystemClock.elapsedRealtime()
+                        return
+                    }
+                    if (ringingAt == 0L) ringingAt = SystemClock.elapsedRealtime()
                     @Suppress("DEPRECATION")
                     intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)?.takeIf { it.isNotBlank() }?.let { incoming = it }
                     // Voice answer, once the number is known (the second of the two broadcasts): it asks the
                     // user, so the timed auto-answer waits. No clear reply: auto-answer answers then.
                     val number = incoming
-                    if (number != null && !voiceAsked && VoiceAnswer.enabled(context)) {
+                    if (number != null && !voiceAsked && ring == AutoAnswer.Ring.FIRST && VoiceAnswer.enabled(context)) {
                         voiceAsked = true
+                        val call = callCount
                         callHeadset { headset ->
-                            if (VoiceAnswer.onRinging(context, number, headset) { tryAnswer() }) {
-                                voiceTookCall = true
-                                handler.removeCallbacks(answer)
+                            // The call ended while the earbuds were checked: nothing to ask.
+                            if (call != callCount) return@callHeadset
+                            // The timer waits while voice answer asks; no clear reply, it answers on time.
+                            handler.removeCallbacks(answer)
+                            voiceTookCall = true
+                            if (!VoiceAnswer.onRinging(context, number, headset) { answerOnTime() }) {
+                                voiceTookCall = false
+                                if (AutoAnswer.enabled(context)) answerOnTime()
                             }
                         }
                     }
                     if (!AutoAnswer.enabled(context) || voiceTookCall) return
-                    // The broadcast comes twice (with and without the number): one timer.
-                    handler.removeCallbacks(answer)
-                    handler.postDelayed(answer, AutoAnswer.delaySeconds(context) * 1000L)
-                    PacketLogger.log("CALL: ringing, auto-answer in ${AutoAnswer.delaySeconds(context)} s if the earbuds are connected")
+                    // The broadcast comes twice (with and without the number): one timer, from the first ring.
+                    answerOnTime()
+                    PacketLogger.log("CALL: ${if (ring == AutoAnswer.Ring.FIRST) "ringing" else "second call during a call"}, " +
+                        "auto-answer in ${AutoAnswer.delaySeconds(context)} s if the earbuds are connected")
                 }
-                // Answered or rejected by the user, or ended: nothing to do.
-                TelephonyManager.EXTRA_STATE_OFFHOOK, TelephonyManager.EXTRA_STATE_IDLE -> {
-                    handler.removeCallbacks(answer)
-                    VoiceAnswer.onStoppedRinging()
-                    incoming = null
-                    voiceAsked = false
-                    voiceTookCall = false
-                }
+                // Answered or rejected by the user, or ended: nothing to do. A call is on until the phone is idle:
+                // after a second call, the first one can still be on.
+                TelephonyManager.EXTRA_STATE_OFFHOOK -> { endCall(); inCall = true }
+                TelephonyManager.EXTRA_STATE_IDLE -> { endCall(); inCall = false }
             }
         }
     }
@@ -164,11 +198,43 @@ class AutoAnswerMonitor(private val context: Context) {
     /** This call: voice answer looked at it once; it asked the user (the timed auto-answer then waits). */
     private var voiceAsked = false
     private var voiceTookCall = false
+    /** This call is the voice probe's: no auto-answer for it. */
+    private var probing = false
+    /** When this call started to ring (elapsed time), or 0: the delay counts from then. */
+    private var ringingAt = 0L
+    /** Counts calls that stopped ringing: an earbuds check that answers after its call ended is ignored. */
+    private var callCount = 0
+    /** A call is on (answered, dialled or on hold): a call that rings now is a second call. */
+    private var inCall = false
+
+    /** Answers when the delay since the first ring is over: at once if it is already over. */
+    private fun answerOnTime() {
+        val start = if (ringingAt == 0L) SystemClock.elapsedRealtime() else ringingAt
+        val left = start + AutoAnswer.delaySeconds(context) * 1000L - SystemClock.elapsedRealtime()
+        handler.removeCallbacks(answer)
+        handler.postDelayed(answer, left.coerceAtLeast(0L))
+    }
+
+    /** The call was answered, rejected or ended (or the monitor stops): everything for it ends. */
+    private fun endCall() {
+        handler.removeCallbacks(answer)
+        VoiceAnswer.onStoppedRinging()
+        incoming = null
+        voiceAsked = false
+        voiceTookCall = false
+        probing = false
+        ringingAt = 0L
+        callCount++
+    }
 
     /** Registered while the feature is on and allowed, or the voice probe is armed; on start and on setting changes. */
     fun update() {
         val want = AutoAnswer.enabled(context) || VoiceProbe.armed(context) || VoiceAnswer.enabled(context)
         if (want && !registered) {
+            // Registered during a call: no broadcast tells it, so ask once.
+            @Suppress("DEPRECATION")
+            inCall = runCatching { context.getSystemService(TelephonyManager::class.java)?.callState == TelephonyManager.CALL_STATE_OFFHOOK }
+                .getOrDefault(false)
             val filter = IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
             // A system broadcast: exported, so the system's sender reaches it.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
@@ -180,7 +246,7 @@ class AutoAnswerMonitor(private val context: Context) {
     }
 
     fun stop() {
-        handler.removeCallbacks(answer)
+        endCall()
         if (registered) runCatching { context.unregisterReceiver(receiver) }
         registered = false
     }

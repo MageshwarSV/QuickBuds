@@ -61,6 +61,11 @@ class PlaceNavigatorActivity : Activity(), SensorEventListener {
     private lateinit var compassNote: TextView
 
     private var fix: Location? = null
+    /**
+     * True once this visit asked for location. The dialog pauses and resumes the screen, so onResume
+     * asks only once. Was: a denial asked again at once, without end.
+     */
+    private var askedLocation = false
     private var fixAtElapsed = 0L
     /** Smoothed heading as a unit vector (no jump across north). */
     private var hx = 0.0
@@ -182,6 +187,8 @@ class PlaceNavigatorActivity : Activity(), SensorEventListener {
     @SuppressLint("MissingPermission")
     private fun startLocation() {
         if (!DisconnectPlaces.foregroundPermitted(this)) {
+            if (askedLocation) return
+            askedLocation = true
             requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_LOCATION)
             return
         }
@@ -253,7 +260,8 @@ class PlaceNavigatorActivity : Activity(), SensorEventListener {
         }
         if (f == null) {
             distance.text = "—"
-            status.setText(R.string.nav_waiting_fix)
+            // Denied: no live position comes, so do not say "waiting".
+            status.setText(if (DisconnectPlaces.foregroundPermitted(this)) R.string.nav_waiting_fix else R.string.dloc_note_permission)
             yours.text = ""; margin.text = ""
             arrow.show(null, false, false)
             return

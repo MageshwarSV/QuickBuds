@@ -66,6 +66,19 @@ class DisconnectPlacesActivity : Activity() {
     override fun onResume() {
         super.onResume()
         // Permission may have changed in Android settings while away.
+        live.resume()
+        repaint()
+    }
+
+    override fun onPause() {
+        live.pause()
+        super.onPause()
+    }
+
+    /** Kept up to date while open: a disconnect adds a place. */
+    private val live = LiveScreen(this) { repaint() }
+
+    private fun repaint() {
         quietSwitch(DisconnectPlaces.enabled(this) && DisconnectPlaces.foregroundPermitted(this))
         paintSwitch()
         render()

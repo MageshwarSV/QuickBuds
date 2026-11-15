@@ -181,6 +181,12 @@ class BudsConnectionManager(private val context: Context) {
     private var lossRetries = 0
     private var connectedAt = 0L
     private var pendingReconnect: Runnable? = null
+    /**
+     * Counts [disconnect] calls. A connect thread that started before the latest one closes its
+     * socket and does not mark the link ready. Was: a running connect undid a disconnect.
+     */
+    @Volatile private var connectGen = 0
+    private val connectLock = Any()
     /** Set by the all-zero wear push the buds send just before a lid close drops the link (PROTOCOL.md §8). */
     @Volatile private var caseClosing = false
     /**
@@ -217,6 +223,7 @@ class BudsConnectionManager(private val context: Context) {
         log("Initiating RFCOMM connection to ${device.name}...")
         rememberDeviceName(device)
         context.getSystemService(BluetoothManager::class.java)?.adapter?.cancelDiscovery()
+        val gen = connectGen
 
         Thread {
             // 079A first: it is the one that works (HeyMelody connects straight to it), while
@@ -259,10 +266,20 @@ class BudsConnectionManager(private val context: Context) {
             }
 
             if (socket != null) {
-                bluetoothSocket = socket
-                connectedThread = ConnectedThread(socket)
-                connectedThread?.start()
-                isReady = true
+                val current = synchronized(connectLock) {
+                    if (gen != connectGen) return@synchronized false
+                    bluetoothSocket = socket
+                    connectedThread = ConnectedThread(socket).also { it.start() }
+                    isReady = true
+                    true
+                }
+                if (!current) {
+                    log("Connect finished after a disconnect: socket closed.")
+                    try { socket.close() } catch (_: Exception) {}
+                    return@Thread
+                }
+                // A new link: no level from the last session (or other buds) is re-sent.
+                lastLeft = null; lastRight = null; lastCase = null
                 reconnectAttempts = 0
                 connectedAt = System.currentTimeMillis()
                 caseClosing = false
@@ -272,14 +289,18 @@ class BudsConnectionManager(private val context: Context) {
                 runInitSequence()
             } else {
                 log("All connection methods failed: $lastError")
+                // A disconnect() during the attempt already ended it: no teardown, no retry.
+                if (gen != connectGen) return@Thread
                 isConnecting = false
                 disconnect()
                 if (reconnectAttempts < 3) {
                     reconnectAttempts++
                     log("Auto-retry $reconnectAttempts/3 in 5s...")
-                    handler.postDelayed({
-                        if (!isConnected() && !isConnecting) connect(device)
-                    }, 5000)
+                    // Stored, so a disconnect() cancels it.
+                    val retryGen = connectGen
+                    val r = Runnable { if (retryGen == connectGen && !isConnected() && !isConnecting) connect(device) }
+                    pendingReconnect = r
+                    handler.postDelayed(r, 5000)
                 } else {
                     log("Giving up. Tap CONNECT to retry manually.")
                     reconnectAttempts = 0
@@ -371,11 +392,15 @@ class BudsConnectionManager(private val context: Context) {
         // A deliberate disconnect must not be undone by a queued reconnect.
         pendingReconnect?.let { handler.removeCallbacks(it) }
         pendingReconnect = null
-        isReady = false
-        isConnecting = false
-        connectedThread?.cancel()
-        connectedThread = null
-        bluetoothSocket = null
+        synchronized(connectLock) {
+            connectGen++
+            isReady = false
+            isConnecting = false
+            connectedThread?.cancel()
+            connectedThread = null
+            bluetoothSocket = null
+        }
+        lastLeft = null; lastRight = null; lastCase = null
         bridge?.dropClient()
         handler.post { listeners.forEach { it.onConnected(false) } }
         log("Disconnected")

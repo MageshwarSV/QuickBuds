@@ -108,7 +108,23 @@ class ModelActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        Usage.load(this) { s -> ConnectedAudio.query(this) { connected -> fillYours(s, connected?.keys.orEmpty()) } }
+        live.resume()
+        reload()
+    }
+
+    override fun onPause() {
+        live.pause()
+        super.onPause()
+    }
+
+    /** Kept up to date while open: earbuds that connect or go. A second: asking what is connected takes a moment. */
+    private val live = LiveScreen(this, settleMs = 1_000L) { reload() }
+
+    private fun reload() {
+        Usage.load(this) { s ->
+            if (isFinishing || isDestroyed) return@load
+            ConnectedAudio.query(this) { connected -> if (!isFinishing && !isDestroyed) fillYours(s, connected?.keys.orEmpty()) }
+        }
     }
 
     /**

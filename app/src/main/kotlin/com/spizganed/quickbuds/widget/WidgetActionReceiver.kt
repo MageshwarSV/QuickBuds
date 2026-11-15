@@ -13,6 +13,15 @@ import com.spizganed.quickbuds.protocol.AncModes
 import com.spizganed.quickbuds.ui.Haptics
 import com.spizganed.quickbuds.ui.MainActivity
 
+/**
+ * True when a foreground start of [BudsService] is safe. Android 12+: its type connectedDevice needs a
+ * Bluetooth permission at startForeground time, and a foreground start without startForeground crashes the app.
+ */
+internal fun canStartBudsService(context: Context): Boolean =
+    android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S ||
+        context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) ==
+        android.content.pm.PackageManager.PERMISSION_GRANTED
+
 class WidgetActionReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -100,6 +109,11 @@ class WidgetActionReceiver : BroadcastReceiver() {
 
         // Background service off: only a running service (the app is open) takes the command.
         if (!BudsService.backgroundAllowed(context)) return
+        // No Bluetooth permission: startForeground would throw, and the app would crash. Ignore the tap.
+        if (!canStartBudsService(context)) {
+            Log.d("BudsWidget", "[RX] Bluetooth permission missing, service not started")
+            return
+        }
 
         try {
             val serviceIntent = Intent(context, BudsService::class.java).apply {
@@ -128,7 +142,9 @@ class WidgetActionReceiver : BroadcastReceiver() {
     private fun doubleTap(context: Context, intent: Intent, id: Int, page: String) {
         pending.remove(id)?.let {
             handler.removeCallbacks(it)
-            WidgetSettings.setPage(context, id, QuickBudsWidget.Kind.valueOf(page))
+            // An unknown page name ignores the tap.
+            val kind = QuickBudsWidget.Kind.entries.firstOrNull { k -> k.name == page } ?: return
+            WidgetSettings.setPage(context, id, kind)
             AncWidgetProvider.refreshAll(context)
             return
         }

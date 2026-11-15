@@ -16,7 +16,9 @@ data class DrainState(
     val firstDropLevel: Int = -1,
     val firstDropMs: Long = 0L,
     val lastDropLevel: Int = -1,
-    val lastDropMs: Long = 0L
+    val lastDropMs: Long = 0L,
+    /** The buds in use for this stretch ([BatteryDrain.budsInUse]); 0 when not known. */
+    val buds: Int = 0
 )
 
 /**
@@ -25,7 +27,7 @@ data class DrainState(
  * Buds report the level in steps (1, 5 or 10%). A stretch is measured from the first drop seen to the last one,
  * both at the moment the new step was reported: 90% at 10:00, then 60% at 11:30 is 30% in 1 h 30 min. Starting at
  * the connect would count part of a step that began earlier. A stretch ends on charging, a bud into the case, a
- * level that went up, or a disconnect.
+ * level that went up, another set of buds in use, or a disconnect.
  */
 object BatteryDrain {
     /** Runs kept per device. */
@@ -38,15 +40,21 @@ object BatteryDrain {
     /** Shorter runs are reporting noise (a level corrected right after connect). */
     const val MIN_RUN_MS = 5 * 60_000L
 
-    /** A level report. [draining]: in use, out of the case and not charging. */
-    fun onLevel(s: DrainState, nowMs: Long, level: Int, draining: Boolean): DrainState {
+    /**
+     * A level report. [draining]: in use, out of the case and not charging. [buds]: the buds in use
+     * ([budsInUse]), 0 when not known. Another set ends the stretch and starts a new one at [level]: the level is
+     * now another bud's. Was: a lower bud out of the case later counted the gap as drain.
+     */
+    fun onLevel(s: DrainState, nowMs: Long, level: Int, draining: Boolean, buds: Int = 0): DrainState {
         if (!draining || level < 0) return close(s, nowMs)
-        if (s.lastLevel < 0) return s.copy(lastLevel = level)
-        if (level > s.lastLevel) return close(s, nowMs).copy(lastLevel = level)   // charged in between
-        if (level == s.lastLevel) return s
-        return if (s.firstDropLevel < 0) s.copy(lastLevel = level, firstDropLevel = level, firstDropMs = nowMs,
+        if (buds != 0 && s.buds != 0 && buds != s.buds) return close(s, nowMs).copy(lastLevel = level, buds = buds)
+        val t = if (buds != 0) s.copy(buds = buds) else s
+        if (t.lastLevel < 0) return t.copy(lastLevel = level)
+        if (level > t.lastLevel) return close(t, nowMs).copy(lastLevel = level, buds = t.buds)   // charged in between
+        if (level == t.lastLevel) return t
+        return if (t.firstDropLevel < 0) t.copy(lastLevel = level, firstDropLevel = level, firstDropMs = nowMs,
             lastDropLevel = level, lastDropMs = nowMs)
-        else s.copy(lastLevel = level, lastDropLevel = level, lastDropMs = nowMs)
+        else t.copy(lastLevel = level, lastDropLevel = level, lastDropMs = nowMs)
     }
 
     /** The link went down: the stretch ends (what happened while disconnected is not known). */
@@ -84,6 +92,13 @@ object BatteryDrain {
     fun budsLevel(left: Int, right: Int, leftInUse: Boolean, rightInUse: Boolean): Int? =
         listOfNotNull(left.takeIf { it >= 0 && leftInUse }, right.takeIf { it >= 0 && rightInUse }).minOrNull()
 
+    /** The buds [budsLevel] takes, as bits: 1 left, 2 right. 0 when none is in use. */
+    fun budsInUse(left: Int, right: Int, leftInUse: Boolean, rightInUse: Boolean): Int =
+        (if (left >= 0 && leftInUse) 1 else 0) or (if (right >= 0 && rightInUse) 2 else 0)
+
+    /** A bud is in use when it does not charge and is not in the case: wear status 4, or 0 (docked and asleep). */
+    fun inUse(wearStatus: Int, charging: Boolean): Boolean = !charging && wearStatus != 4 && wearStatus != 0
+
     // --- Storage: one JSON value per device in the app's preferences ---
 
     private const val KEY_PREFIX = "batteryDrain:"
@@ -102,7 +117,8 @@ object BatteryDrain {
                 },
                 lastLevel = o.optInt("last", -1),
                 firstDropLevel = o.optInt("firstLevel", -1), firstDropMs = o.optLong("firstMs"),
-                lastDropLevel = o.optInt("lastLevel", -1), lastDropMs = o.optLong("lastMs")
+                lastDropLevel = o.optInt("lastLevel", -1), lastDropMs = o.optLong("lastMs"),
+                buds = o.optInt("buds")
             )
         }.onFailure { PacketLogger.error("battery drain read", it) }.getOrDefault(DrainState())
     }
@@ -112,13 +128,19 @@ object BatteryDrain {
         s.runs.forEach { arr.put(JSONObject().put("end", it.endMs).put("drop", it.dropPct).put("ms", it.durationMs)) }
         val o = JSONObject().put("runs", arr).put("last", s.lastLevel)
             .put("firstLevel", s.firstDropLevel).put("firstMs", s.firstDropMs)
-            .put("lastLevel", s.lastDropLevel).put("lastMs", s.lastDropMs)
+            .put("lastLevel", s.lastDropLevel).put("lastMs", s.lastDropMs).put("buds", s.buds)
         prefs(c).edit().putString(KEY_PREFIX + deviceId, o.toString()).apply()
     }
 
-    fun record(c: Context, deviceId: String, level: Int, draining: Boolean) = synchronized(lock) {
+    /** One battery report: both levels, and whether each bud is in use ([inUse]). */
+    fun record(c: Context, deviceId: String, left: Int, right: Int, leftInUse: Boolean, rightInUse: Boolean) {
+        val level = budsLevel(left, right, leftInUse, rightInUse)
+        record(c, deviceId, level ?: -1, draining = level != null, buds = budsInUse(left, right, leftInUse, rightInUse))
+    }
+
+    fun record(c: Context, deviceId: String, level: Int, draining: Boolean, buds: Int = 0) = synchronized(lock) {
         val before = load(c, deviceId)
-        val after = onLevel(before, System.currentTimeMillis(), level, draining)
+        val after = onLevel(before, System.currentTimeMillis(), level, draining, buds)
         if (after != before) save(c, deviceId, after)
         if (after.runs.size > before.runs.size) after.runs.last().let {
             PacketLogger.log("BATTERY DRAIN: $deviceId ${it.dropPct}% in ${it.durationMs / 60_000} min")
@@ -126,10 +148,24 @@ object BatteryDrain {
     }
 
     fun disconnected(c: Context, deviceId: String) = synchronized(lock) {
-        val before = load(c, deviceId)
-        val after = onDisconnected(before, System.currentTimeMillis())
-        if (after != before) save(c, deviceId, after)
+        for (id in listOf(deviceId, budId(deviceId, true), budId(deviceId, false))) {
+            val before = load(c, id)
+            val after = onDisconnected(before, System.currentTimeMillis())
+            if (after != before) save(c, id, after)
+        }
     }
+
+    /** One bud's own history (Battery life, left and right apart): the device's id with ":L" or ":R". */
+    fun budId(deviceId: String, left: Boolean) = deviceId + if (left) ":L" else ":R"
+
+    /** Each bud on its own, next to the pair's [record]. */
+    fun recordEach(c: Context, deviceId: String, left: Int, right: Int, leftInUse: Boolean, rightInUse: Boolean) {
+        record(c, budId(deviceId, true), left, draining = leftInUse && left >= 0)
+        record(c, budId(deviceId, false), right, draining = rightInUse && right >= 0)
+    }
+
+    /** Measured for each bud apart: the screen then shows left, right and case. */
+    fun hasBuds(c: Context, deviceId: String) = load(c, budId(deviceId, true)) != DrainState() || load(c, budId(deviceId, false)) != DrainState()
 
     fun rate(c: Context, deviceId: String): Rate? = rate(load(c, deviceId), System.currentTimeMillis())
 }

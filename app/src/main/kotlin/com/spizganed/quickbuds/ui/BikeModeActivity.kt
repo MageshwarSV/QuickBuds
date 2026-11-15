@@ -52,7 +52,7 @@ class BikeModeActivity : Activity() {
         val delayRow = SettingRowFactory.build(this, 0, R.string.auto_answer_delay_title, 0, SettingRowFactory.buildChevron(this)) {
             BottomSheetDialog(this).title(getString(R.string.auto_answer_delay_title)).items(AutoAnswer.DELAYS.map { s ->
                 BottomSheetDialog.Item(getString(R.string.auto_answer_seconds, s), s == BikeMode.delaySeconds(this)) {
-                    BikeMode.choose(this) { it.putInt(BikeMode.KEY_DELAY, s) }
+                    choose { it.putInt(BikeMode.KEY_DELAY, s) }
                     paint()
                 }
             }).show()
@@ -89,7 +89,26 @@ class BikeModeActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        // A permission granted again (here or in Android's settings) changes no setting: the service looks again.
+        BudsService.syncCalls(this)
+        live.resume()
         paint()
+    }
+
+    override fun onPause() {
+        live.pause()
+        super.onPause()
+    }
+
+    /** Kept up to date while open: the quick settings tile turns Bike mode on and off from outside. */
+    private val live = LiveScreen(this) { paint() }
+
+    /**
+     * Changes a choice. While Bike mode is on, a choice whose permissions are missing would leave it off: it asks
+     * for them, and Bike mode comes back on when they are granted. Was: it went off with no message.
+     */
+    private fun choose(change: (android.content.SharedPreferences.Editor) -> Unit) {
+        if (!BikeMode.choose(this, change)) ask(BikeMode.missingPermissions(this), REQUEST_BIKE)
     }
 
     private fun missing(perms: Array<String>) = perms.filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
@@ -122,19 +141,19 @@ class BikeModeActivity : Activity() {
 
     private val autoListener = CompoundButton.OnCheckedChangeListener { _, on ->
         if (on && !ask(missing(AutoAnswer.PERMISSIONS), REQUEST_AUTO)) return@OnCheckedChangeListener paint()
-        BikeMode.choose(this) { it.putBoolean(BikeMode.KEY_AUTO_ANSWER, on) }
+        choose { it.putBoolean(BikeMode.KEY_AUTO_ANSWER, on) }
         paint()
     }
 
     private val voiceListener = CompoundButton.OnCheckedChangeListener { _, on ->
         if (on && !ask(missing(VoiceAnswer.PERMISSIONS), REQUEST_VOICE)) return@OnCheckedChangeListener paint()
-        BikeMode.choose(this) { it.putBoolean(BikeMode.KEY_VOICE_ANSWER, on) }
+        choose { it.putBoolean(BikeMode.KEY_VOICE_ANSWER, on) }
         if (on) takeMicrophone()
         paint()
     }
 
     private val musicListener = CompoundButton.OnCheckedChangeListener { _, on ->
-        if (on && !ask(missing(MUSIC_PERMISSIONS), REQUEST_MUSIC)) return@OnCheckedChangeListener paint()
+        if (on && !ask(missing(VoiceMusicActivity.PERMISSIONS), REQUEST_MUSIC)) return@OnCheckedChangeListener paint()
         VoiceMusic.setEnabled(this, on)
         if (on) takeMicrophone()
         // Not set up yet (no music app, model or access): its screen shows what is missing.
@@ -148,8 +167,8 @@ class BikeModeActivity : Activity() {
         // Granted: do what the switch asked for.
         when (requestCode) {
             REQUEST_BIKE -> { BikeMode.set(this, true); takeMicrophone() }
-            REQUEST_AUTO -> BikeMode.choose(this) { it.putBoolean(BikeMode.KEY_AUTO_ANSWER, true) }
-            REQUEST_VOICE -> { BikeMode.choose(this) { it.putBoolean(BikeMode.KEY_VOICE_ANSWER, true) }; takeMicrophone() }
+            REQUEST_AUTO -> choose { it.putBoolean(BikeMode.KEY_AUTO_ANSWER, true) }
+            REQUEST_VOICE -> { choose { it.putBoolean(BikeMode.KEY_VOICE_ANSWER, true) }; takeMicrophone() }
             REQUEST_MUSIC -> { VoiceMusic.setEnabled(this, true); takeMicrophone() }
         }
         paint()
@@ -177,9 +196,6 @@ class BikeModeActivity : Activity() {
         private const val REQUEST_AUTO = 92
         private const val REQUEST_VOICE = 93
         private const val REQUEST_MUSIC = 94
-        /** Voice music: the microphone, the call state, and answer-calls for "Hey Jarvis, cut the call". */
-        private val MUSIC_PERMISSIONS = arrayOf(android.Manifest.permission.RECORD_AUDIO,
-            android.Manifest.permission.READ_PHONE_STATE, android.Manifest.permission.ANSWER_PHONE_CALLS)
 
         /** One line: on or off, then what it turns on. */
         fun summary(c: Context): String {

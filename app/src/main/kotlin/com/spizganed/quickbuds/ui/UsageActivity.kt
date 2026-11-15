@@ -91,14 +91,27 @@ class UsageActivity : Activity() {
         super.onResume()
         resumed = true
         Usage.addListener(changed)
+        com.spizganed.quickbuds.widget.WidgetStateStore.addListener(budsChanged)
         reload()
     }
 
     override fun onPause() {
         resumed = false
         Usage.removeListener(changed)
+        com.spizganed.quickbuds.widget.WidgetStateStore.removeListener(budsChanged)
         handler.removeCallbacks(tick)
+        handler.removeCallbacks(redraw)
         super.onPause()
+    }
+
+    /**
+     * The buds reported (a level, a bud into the case): Battery life redraws at once, one redraw for a burst of
+     * reports. Was: only when the screen opened.
+     */
+    private val redraw = Runnable { if (resumed) render() }
+    private val budsChanged: (com.spizganed.quickbuds.widget.WidgetStateStore.State) -> Unit = {
+        handler.removeCallbacks(redraw)
+        handler.postDelayed(redraw, 300L)
     }
 
     private fun reload() {
@@ -182,13 +195,16 @@ class UsageActivity : Activity() {
         for (d in s.devices.filter { device == null || it.id == device }) {
             val rate = com.spizganed.quickbuds.usage.BatteryDrain.rate(this, d.id)
             val now = levelNow(d.id)
-            val lines = if (rate == null) listOf(getString(R.string.usage_battery_learning)) else listOfNotNull(
+            val lines = (if (rate == null) listOf(getString(R.string.usage_battery_learning)) else listOfNotNull(
                 now?.let { getString(R.string.usage_battery_left, UsageFormat.duration(this, com.spizganed.quickbuds.usage.BatteryDrain.lastsMs(it, rate)), it) },
                 getString(R.string.usage_battery_full, UsageFormat.duration(this, com.spizganed.quickbuds.usage.BatteryDrain.lastsMs(100, rate)),
                     Math.round(rate.pctPerHour).toInt()),
                 getString(R.string.usage_battery_basis, UsageFormat.duration(this, rate.listenedMs))
-            )
-            val row = SettingRowFactory.build(this, R.drawable.ic_case, 0, 0, null, minHeightDp = 56f)
+            )) + getString(R.string.bl_tap)
+            // A tap: the device's own screen, with left, right and case as charts.
+            val row = SettingRowFactory.build(this, R.drawable.ic_case, 0, 0, SettingRowFactory.buildChevron(this), minHeightDp = 56f) {
+                BatteryLifeActivity.open(this, d.id, d.label)
+            }
             row.findViewWithTag<TextView>(SettingRowFactory.TITLE_TAG).text = d.label
             SettingRowFactory.subtitle(this, row).text = lines.joinToString("\n")
             SettingRowFactory.addRow(card, row)
@@ -201,8 +217,8 @@ class UsageActivity : Activity() {
         val st = com.spizganed.quickbuds.widget.WidgetStateStore.read(this)
         if (st.connected && com.spizganed.quickbuds.bluetooth.BudsDevice.find(this)?.address == id) {
             return com.spizganed.quickbuds.usage.BatteryDrain.budsLevel(st.leftBattery, st.rightBattery,
-                leftInUse = !com.spizganed.quickbuds.notify.BatteryCard.leftCharging && st.leftStatus != 4,
-                rightInUse = !com.spizganed.quickbuds.notify.BatteryCard.rightCharging && st.rightStatus != 4)
+                leftInUse = com.spizganed.quickbuds.usage.BatteryDrain.inUse(st.leftStatus, com.spizganed.quickbuds.notify.BatteryCard.leftCharging),
+                rightInUse = com.spizganed.quickbuds.usage.BatteryDrain.inUse(st.rightStatus, com.spizganed.quickbuds.notify.BatteryCard.rightCharging))
         }
         return com.spizganed.quickbuds.bluetooth.ConnectedDevices.all().firstOrNull { it.address == id }?.level?.takeIf { it > 0 }
     }

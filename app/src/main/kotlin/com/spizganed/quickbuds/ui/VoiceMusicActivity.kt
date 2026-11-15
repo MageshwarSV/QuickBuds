@@ -80,17 +80,24 @@ class VoiceMusicActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        live.resume()
         quietSwitch(isOn())
         paint()
     }
+
+    override fun onPause() {
+        live.pause()
+        super.onPause()
+    }
+
+    /** Kept up to date while open: Bike mode from the tile, the microphone, the model. */
+    private val live = LiveScreen(this) { quietSwitch(isOn()); paint() }
 
     private fun isOn() = VoiceMusic.switchedOn(this) &&
         checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 
     private val listener = CompoundButton.OnCheckedChangeListener { _, on ->
-        // The microphone, the call state, and answer-calls for "Hey Jarvis, cut the call".
-        val missing = listOf(android.Manifest.permission.RECORD_AUDIO, android.Manifest.permission.READ_PHONE_STATE,
-            android.Manifest.permission.ANSWER_PHONE_CALLS).filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
+        val missing = PERMISSIONS.filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
         if (on && missing.isNotEmpty()) {
             quietSwitch(false)
             requestPermissions(missing.toTypedArray(), REQUEST_MIC)
@@ -153,7 +160,9 @@ class VoiceMusicActivity : Activity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_MIC && checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+        // All three: without the call state it would not stop for calls, nor hear "cut the call". Was: the
+        // microphone alone turned it on.
+        if (requestCode == REQUEST_MIC && PERMISSIONS.all { checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }) {
             VoiceMusic.setEnabled(this, true)
             quietSwitch(true)
             takeMicrophone()
@@ -164,6 +173,9 @@ class VoiceMusicActivity : Activity() {
 
     companion object {
         private const val REQUEST_MIC = 81
+        /** The microphone, the call state, and answer-calls for "Hey Jarvis, cut the call". */
+        val PERMISSIONS = arrayOf(android.Manifest.permission.RECORD_AUDIO, android.Manifest.permission.READ_PHONE_STATE,
+            android.Manifest.permission.ANSWER_PHONE_CALLS)
 
         /** One line: off, or the first thing it still needs, or listening. */
         fun summary(c: Context): String = c.getString(when {

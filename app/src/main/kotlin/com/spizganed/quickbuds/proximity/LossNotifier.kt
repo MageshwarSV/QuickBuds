@@ -31,6 +31,8 @@ object LossNotifier {
     const val CHANNEL = "QuickBuds_Loss"
     private const val ID = 2
     private const val CASE_ID = 3
+    /** One earbud left behind ([BudSeparationWatch]). */
+    private const val BUD_ID = 8
 
     /** [BudsService] actions behind the cards' buttons. */
     const val ACTION_FIND = "com.spizganed.quickbuds.LOSS_FIND"
@@ -159,6 +161,29 @@ object LossNotifier {
 
     fun clearCaseReminder(context: Context) {
         context.getSystemService(NotificationManager::class.java)?.cancel(CASE_ID)
+    }
+
+    /** "Your left earbud might be left behind": it lost contact with the other one, out of the case. */
+    fun budLost(context: Context, left: Boolean) {
+        val title = context.getString(if (left) R.string.bud_lost_left else R.string.bud_lost_right)
+        val actions = mutableListOf<Notification.Action>()
+        // Find nearby: the buds' Fast Pair broadcast still says where they are.
+        BudsDevice.find(context)?.address?.let { address ->
+            actions += Notification.Action.Builder(null, context.getString(R.string.find_nav_title),
+                PendingIntent.getActivity(context, 200_000 + BUD_ID,
+                    FindNearbyActivity.intent(context, address, com.spizganed.quickbuds.protocol.ModelCatalog.current(context)?.name,
+                        com.spizganed.quickbuds.widget.WidgetStateStore.read(context).let { intArrayOf(it.leftBattery, it.rightBattery, it.caseBattery) }
+                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)).build()
+        }
+        actions += action(context, R.string.bud_lost_found, 100_000 + BUD_ID,
+            Intent(context, BudsService::class.java).setAction(ACTION_DISMISS).putExtra(EXTRA_ID, BUD_ID))
+        post(context, BUD_ID, title, context.getString(R.string.bud_lost_body), R.drawable.notif_bg_loss,
+            NotificationArt.caseArt(context, left, 40f), NotificationArt.caseArt(context, left, 64f), actions, alert = true)
+    }
+
+    fun clearBudLost(context: Context) {
+        context.getSystemService(NotificationManager::class.java)?.cancel(BUD_ID)
     }
 
     /** Cancels the card [id] (a card's dismiss button). */
