@@ -49,6 +49,21 @@ object AutoAnswer {
 
     fun setSecondCall(c: Context, on: Boolean) = prefs(c).edit().putBoolean(KEY_SECOND_CALL, on).apply()
 
+    /**
+     * A repeated call: the same number again within [REPEAT_WINDOW_MS] gets through the contact filter (someone
+     * who tries twice may need you). Off by default.
+     */
+    const val KEY_REPEAT = "autoAnswerRepeat"
+    const val REPEAT_WINDOW_MS = 3 * 60_000L
+
+    fun repeatOn(c: Context) = prefs(c).getBoolean(KEY_REPEAT, false)
+
+    fun setRepeat(c: Context, on: Boolean) = prefs(c).edit().putBoolean(KEY_REPEAT, on).apply()
+
+    /** Whether [number] rang before within [REPEAT_WINDOW_MS]: [recent] holds earlier calls (number, start). Pure. */
+    fun repeatCall(number: String?, nowMs: Long, recent: List<Pair<String, Long>>): Boolean =
+        number != null && recent.any { (n, at) -> nowMs - at in 0..REPEAT_WINDOW_MS && sameNumber(n, number) }
+
     /** What a call that rings gets. Pure. [inCall]: another call is already on. Voice answer never asks then. */
     enum class Ring { FIRST, SECOND_ANSWER, SECOND_IGNORE }
 
@@ -160,6 +175,15 @@ class AutoAnswerMonitor(private val context: Context) {
                     if (ringingAt == 0L) ringingAt = SystemClock.elapsedRealtime()
                     @Suppress("DEPRECATION")
                     intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)?.takeIf { it.isNotBlank() }?.let { incoming = it }
+                    // Once per call, when the number is known: a repeated call gets through the contact filter.
+                    incoming?.takeIf { !numberSeen }?.let { n ->
+                        numberSeen = true
+                        val now = SystemClock.elapsedRealtime()
+                        repeat = AutoAnswer.repeatOn(context) && AutoAnswer.repeatCall(n, now, recent)
+                        if (repeat) PacketLogger.log("CALL: the same number again within 3 min: the contact filter is skipped")
+                        recent.removeAll { now - it.second > AutoAnswer.REPEAT_WINDOW_MS }
+                        recent += n to now
+                    }
                     // Voice answer, once the number is known (the second of the two broadcasts): it asks the
                     // user, so the timed auto-answer waits. No clear reply: auto-answer answers then.
                     val number = incoming
@@ -172,7 +196,7 @@ class AutoAnswerMonitor(private val context: Context) {
                             // The timer waits while voice answer asks; no clear reply, it answers on time.
                             handler.removeCallbacks(answer)
                             voiceTookCall = true
-                            if (!VoiceAnswer.onRinging(context, number, headset) { answerOnTime() }) {
+                            if (!VoiceAnswer.onRinging(context, number, headset, ignoreFilter = repeat) { answerOnTime() }) {
                                 voiceTookCall = false
                                 if (AutoAnswer.enabled(context)) answerOnTime()
                             }
@@ -206,6 +230,11 @@ class AutoAnswerMonitor(private val context: Context) {
     private var callCount = 0
     /** A call is on (answered, dialled or on hold): a call that rings now is a second call. */
     private var inCall = false
+    /** This call's number was looked at; it is a repeated call ([AutoAnswer.repeatCall]). */
+    private var numberSeen = false
+    private var repeat = false
+    /** Calls of the last minutes: number and when it rang (elapsed time). Only in memory. */
+    private val recent = mutableListOf<Pair<String, Long>>()
 
     /** Answers when the delay since the first ring is over: at once if it is already over. */
     private fun answerOnTime() {
@@ -224,6 +253,8 @@ class AutoAnswerMonitor(private val context: Context) {
         voiceTookCall = false
         probing = false
         ringingAt = 0L
+        numberSeen = false
+        repeat = false
         callCount++
     }
 
@@ -259,7 +290,7 @@ class AutoAnswerMonitor(private val context: Context) {
         }.getOrDefault(false)
         if (!ringing) return
         val filter = AutoAnswer.filter(context)
-        if (!AutoAnswer.callerAllowed(filter, incoming, AutoAnswer.contacts(context))) {
+        if (!repeat && !AutoAnswer.callerAllowed(filter, incoming, AutoAnswer.contacts(context))) {
             // No number in the log: it is personal data.
             PacketLogger.log("CALL: not answered: the caller does not pass the contact filter ($filter, " +
                 "${if (incoming == null) "number not known" else "number known"})")

@@ -142,8 +142,11 @@ class BudsService : Service(), BudsConnectionManager.Listener {
             com.spizganed.quickbuds.calls.BikeMode.KEY_ON, com.spizganed.quickbuds.music.VoiceMusic.KEY_ENABLED,
             com.spizganed.quickbuds.music.VoiceMusic.KEY_APP -> {
                 voiceMusic.sync()
+                syncSpeed()
                 if (key == com.spizganed.quickbuds.music.VoiceMusic.KEY_ENABLED && !micWanted()) setMicrophone(false)
             }
+            // Bike mode by itself: the speed option, and Bike mode turned on or off (by hand, or by itself).
+            com.spizganed.quickbuds.calls.BikeAuto.KEY_SPEED -> syncSpeed()
             com.spizganed.quickbuds.calls.VoiceAnswer.KEY_ENABLED, com.spizganed.quickbuds.calls.BikeMode.KEY_VOICE_ANSWER -> {
                 autoAnswer?.update()
                 // Turned off: the microphone goes now. Turned on: it comes when an app screen asks (it is open now).
@@ -333,6 +336,7 @@ class BudsService : Service(), BudsConnectionManager.Listener {
             ACTION_CALLS_SYNC -> {
                 autoAnswer?.update()
                 voiceMusic.sync()
+                syncSpeed()
             }
             ACTION_FIND_BUDS -> {
                 val on = intent.getBooleanExtra(EXTRA_FIND_ON, false)
@@ -533,6 +537,7 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         autoAnswer?.stop()
         voiceMusic.destroy()
         budSeparation.reset()
+        speedWatch.stop()
         com.spizganed.quickbuds.calls.VoiceAnswer.askingChanged = null
         // The next service starts without the microphone type.
         microphoneReady = false
@@ -572,12 +577,18 @@ class BudsService : Service(), BudsConnectionManager.Listener {
     private fun syncLocationBuffer() = com.spizganed.quickbuds.proximity.LocationBuffer.sync(this,
         manager?.isConnected() == true || ConnectedDevices.all().isNotEmpty())
 
-    private val connectedDevicesListener: () -> Unit = { syncLocationBuffer() }
+    private val connectedDevicesListener: () -> Unit = { syncLocationBuffer(); syncSpeed() }
+
+    /** Bike mode by itself, from the speed: watched only while earbuds are connected (or Bike mode is on by speed). */
+    private val speedWatch by lazy { com.spizganed.quickbuds.calls.SpeedWatch(this) }
+
+    private fun syncSpeed() = speedWatch.sync(manager?.isConnected() == true || ConnectedDevices.all().isNotEmpty())
 
     override fun onConnected(connected: Boolean) {
         // Each connection starts from nothing: a bud in a closed case reports the same as a bud left behind.
         budSeparation.reset()
         syncLocationBuffer()
+        syncSpeed()
         other?.onSupportedBudsChanged()
         if (connected) {
             usageHeartbeat()

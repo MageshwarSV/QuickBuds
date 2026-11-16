@@ -15,6 +15,8 @@ import com.spizganed.quickbuds.notify.BatteryCard
 import com.spizganed.quickbuds.usage.BatteryDrain
 import com.spizganed.quickbuds.usage.CaseCharge
 import com.spizganed.quickbuds.widget.WidgetStateStore
+import java.time.YearMonth
+import java.time.ZoneId
 import java.util.Locale
 
 /**
@@ -23,7 +25,8 @@ import java.util.Locale
  * buds, plus what the case can still give. All from history: how fast each bud's level fell while in use
  * ([BatteryDrain]), and how much case level a charge of the buds took ([CaseCharge]). Other earbuds: one ring.
  * It updates while open: at once when the buds report (a bud into the case, a new level), and every [REFRESH_MS]
- * for the times. Without the sweep again. Was: only when opened.
+ * for the times. Without the sweep again. Was: only when opened. Battery health: a full charge per month, so a
+ * battery that wears shows as shorter bars.
  */
 class BatteryLifeActivity : Activity() {
 
@@ -151,6 +154,8 @@ class BatteryLifeActivity : Activity() {
                 addView(text(getString(R.string.bl_shared), 12f, secondary = true).apply { setPadding(0, dp(6f), 0, 0) })
         })
 
+        health(root, id)
+
         // Now: what the buds have left, and what the case can still give them.
         root.addView(SettingRowFactory.sectionLabel(this, R.string.bl_now_title))
         root.addView(card().apply {
@@ -200,8 +205,40 @@ class BatteryLifeActivity : Activity() {
                 addView(text(getString(R.string.usage_battery_basis, UsageFormat.duration(this@BatteryLifeActivity, rate.listenedMs)), 13f, secondary = true))
             }
         })
+        health(root, id)
         return root
     }
+
+    /**
+     * Battery health: a full charge per month ([BatteryDrain.health]), oldest first, then the latest month against
+     * the first one shown.
+     */
+    private fun health(root: LinearLayout, id: String) {
+        val months = BatteryDrain.health(BatteryDrain.months(this, id))
+        root.addView(SettingRowFactory.sectionLabel(this, R.string.bh_title))
+        root.addView(card().apply {
+            if (months.isNotEmpty()) addView(BatteryBarsView(this@BatteryLifeActivity).apply {
+                setBars(months.map { (month, ms) ->
+                    BatteryBarsView.Bar(monthName(month), ms, UsageFormat.duration(this@BatteryLifeActivity, ms))
+                }, animate)
+            })
+            val line = if (months.size < 2) getString(R.string.bh_learning) else {
+                val (firstMonth, first) = months.first()
+                val change = BatteryDrain.changePct(first, months.last().second)
+                when {
+                    change < 0 -> getString(R.string.bh_less, -change, monthName(firstMonth))
+                    change > 0 -> getString(R.string.bh_more, change, monthName(firstMonth))
+                    else -> getString(R.string.bh_same, monthName(firstMonth))
+                }
+            }
+            addView(text(line, 13f, secondary = true).apply { if (months.isNotEmpty()) setPadding(0, dp(6f), 0, 0) })
+        })
+    }
+
+    /** The short month and the year in the user's language: "Oct 2026". */
+    private fun monthName(month: YearMonth): String = DateUtils.formatDateTime(this,
+        month.atDay(1).atTime(12, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+        DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_NO_MONTH_DAY or DateUtils.FORMAT_ABBREV_MONTH or DateUtils.FORMAT_SHOW_YEAR)
 
     /** One decimal in the user's language: "2.5", "2,5". */
     private fun one(v: Double) = String.format(Locale.getDefault(), "%.1f", v)

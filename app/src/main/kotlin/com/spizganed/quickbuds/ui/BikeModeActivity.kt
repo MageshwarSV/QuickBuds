@@ -1,6 +1,9 @@
 package com.spizganed.quickbuds.ui
 
 import android.app.Activity
+import android.os.Build
+import android.bluetooth.BluetoothManager
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,6 +17,7 @@ import com.spizganed.quickbuds.R
 import com.spizganed.quickbuds.bluetooth.BudsService
 import com.spizganed.quickbuds.calls.AutoAnswer
 import com.spizganed.quickbuds.calls.BikeMode
+import com.spizganed.quickbuds.calls.BikeAuto
 import com.spizganed.quickbuds.calls.VoiceAnswer
 import com.spizganed.quickbuds.music.VoiceMusic
 
@@ -79,6 +83,19 @@ class BikeModeActivity : Activity() {
             setTextColor(ThemeRes.color(this@BikeModeActivity, R.attr.appColorTextSecondary))
             val p = ThemeRes.dp(this@BikeModeActivity, 4f)
             setPadding(p, ThemeRes.dp(this@BikeModeActivity, 10f), p, 0)
+        })
+
+        // Turn on by itself: riding fast, or a chosen Bluetooth device connects. Off again by the same thing.
+        root.addView(SettingRowFactory.sectionLabel(this, R.string.bike_auto_title))
+        speedSwitch = SettingRowFactory.buildSwitch(this, BikeAuto.speedOn(this))
+        val speedRow = SettingRowFactory.build(this, R.drawable.ic_bike, R.string.bike_auto_speed, 0, speedSwitch) { speedSwitch.performClick() }
+        speedSub = SettingRowFactory.subtitle(this, speedRow)
+        speedSwitch.setOnCheckedChangeListener(speedListener)
+        val deviceRow = SettingRowFactory.build(this, 0, R.string.bike_auto_bt, 0, SettingRowFactory.buildChevron(this)) { pickDevices() }
+        deviceSub = SettingRowFactory.subtitle(this, deviceRow)
+        root.addView(SettingRowFactory.card(this).apply {
+            SettingRowFactory.addRow(this, speedRow)
+            SettingRowFactory.addRow(this, deviceRow)
         })
 
         setContentView(ScrollView(this).apply {
@@ -152,6 +169,60 @@ class BikeModeActivity : Activity() {
         paint()
     }
 
+    private lateinit var speedSwitch: Switch
+    private lateinit var speedSub: TextView
+    private lateinit var deviceSub: TextView
+
+    /** Speed: the location, then "all the time" (the phone sits in a pocket with the screen off). */
+    private val speedListener = CompoundButton.OnCheckedChangeListener { _, on ->
+        BikeAuto.setSpeed(this, on)
+        if (on && checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_LOCATION)
+        } else if (on) askBackground()
+        paint()
+    }
+
+    private fun askBackground() {
+        if (BikeAuto.locationPermitted(this)) return
+        ConfirmDialog.show(this, getString(R.string.dloc_bg_title), getString(R.string.bike_auto_bg_body), getString(R.string.dloc_continue)) {
+            requestPermissions(arrayOf(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION), REQUEST_BACKGROUND)
+        }
+    }
+
+    /** The paired Bluetooth devices; a tap chooses or unchooses one. */
+    @SuppressLint("MissingPermission")
+    private fun pickDevices() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            return requestPermissions(arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT), REQUEST_BLUETOOTH)
+        }
+        val paired = runCatching { getSystemService(BluetoothManager::class.java)?.adapter?.bondedDevices?.toList() }.getOrNull().orEmpty()
+            .sortedBy { (it.name ?: it.address).lowercase() }
+        if (paired.isEmpty()) return ConfirmDialog.show(this, getString(R.string.bike_auto_bt), getString(R.string.bike_auto_bt_empty),
+            getString(R.string.dialog_close), cancelRes = null)
+        val chosen = BikeAuto.devices(this).toMutableSet()
+        val sheet = BottomSheetDialog(this).title(getString(R.string.bike_auto_bt)).message(getString(R.string.bike_auto_bt_sub))
+            .dismissOnSelect(false).onDismiss { paint() }
+        fun items(): List<BottomSheetDialog.Item> = paired.map { d ->
+            BottomSheetDialog.Item(d.name ?: d.address, d.address in chosen) {
+                if (!chosen.remove(d.address)) chosen += d.address
+                BikeAuto.setDevices(this, chosen)
+                sheet.items(items())
+            }
+        }
+        sheet.items(items()).show()
+    }
+
+    /** The chosen devices by name, or "None". */
+    @SuppressLint("MissingPermission")
+    private fun deviceNames(): String {
+        val chosen = BikeAuto.devices(this)
+        if (chosen.isEmpty()) return getString(R.string.bike_auto_bt_none)
+        val names = runCatching { getSystemService(BluetoothManager::class.java)?.adapter?.bondedDevices
+            ?.filter { it.address in chosen }?.map { it.name ?: it.address } }.getOrNull()
+        return names?.takeIf { it.isNotEmpty() }?.joinToString(", ") ?: chosen.joinToString(", ")
+    }
+
     private val musicListener = CompoundButton.OnCheckedChangeListener { _, on ->
         if (on && !ask(missing(VoiceMusicActivity.PERMISSIONS), REQUEST_MUSIC)) return@OnCheckedChangeListener paint()
         VoiceMusic.setEnabled(this, on)
@@ -170,6 +241,8 @@ class BikeModeActivity : Activity() {
             REQUEST_AUTO -> choose { it.putBoolean(BikeMode.KEY_AUTO_ANSWER, true) }
             REQUEST_VOICE -> { choose { it.putBoolean(BikeMode.KEY_VOICE_ANSWER, true) }; takeMicrophone() }
             REQUEST_MUSIC -> { VoiceMusic.setEnabled(this, true); takeMicrophone() }
+            REQUEST_LOCATION -> askBackground()
+            REQUEST_BLUETOOTH -> pickDevices()
         }
         paint()
     }
@@ -183,6 +256,10 @@ class BikeModeActivity : Activity() {
         bikeSub.text = summary(this)
         delaySub.text = getString(R.string.auto_answer_seconds, BikeMode.delaySeconds(this))
         musicSub.text = VoiceMusicActivity.summary(this)
+        quiet(speedSwitch, BikeAuto.speedOn(this), speedListener)
+        speedSub.text = getString(if (BikeAuto.speedOn(this) && !BikeAuto.locationPermitted(this)) R.string.dloc_needs_background
+            else R.string.bike_auto_speed_sub)
+        deviceSub.text = deviceNames()
     }
 
     private fun quiet(sw: Switch, on: Boolean, l: CompoundButton.OnCheckedChangeListener) {
@@ -196,6 +273,9 @@ class BikeModeActivity : Activity() {
         private const val REQUEST_AUTO = 92
         private const val REQUEST_VOICE = 93
         private const val REQUEST_MUSIC = 94
+        private const val REQUEST_LOCATION = 95
+        private const val REQUEST_BACKGROUND = 96
+        private const val REQUEST_BLUETOOTH = 97
 
         /** One line: on or off, then what it turns on. */
         fun summary(c: Context): String {

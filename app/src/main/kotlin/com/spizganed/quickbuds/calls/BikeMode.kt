@@ -26,6 +26,8 @@ object BikeMode {
     private const val KEY_PREV_ENABLED = "bikeModePrevAutoAnswer"
     private const val KEY_PREV_DELAY = "bikeModePrevDelay"
     private const val KEY_PREV_VOICE = "bikeModePrevVoiceAnswer"
+    /** What turned Bike mode on by itself ([BikeAuto]); none when the user did. */
+    private const val KEY_BY = "bikeModeBy"
     const val DEFAULT_DELAY_S = 3
 
     private fun prefs(c: Context) = c.getSharedPreferences(ThemeRes.PREFS_NAME, Context.MODE_PRIVATE)
@@ -45,8 +47,14 @@ object BikeMode {
             (if (voiceAnswer(c)) VoiceAnswer.PERMISSIONS.toList() else emptyList()))
             .distinct().filter { c.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED }
 
-    /** Returns false when it cannot turn on: a chosen feature's permissions are missing. */
-    fun set(c: Context, on: Boolean): Boolean {
+    /** What turned Bike mode on by itself ([BikeAuto.BY_SPEED], [BikeAuto.byDevice]), or null: the user, or off. */
+    fun by(c: Context): String? = prefs(c).getString(KEY_BY, null)
+
+    /**
+     * Returns false when it cannot turn on: a chosen feature's permissions are missing. [by]: what turns it on by
+     * itself; null is the user, and only the user turns off what the user turned on.
+     */
+    fun set(c: Context, on: Boolean, by: String? = null): Boolean {
         val p = prefs(c)
         if (on) {
             if (missingPermissions(c).isNotEmpty()) return false
@@ -57,10 +65,12 @@ object BikeMode {
                 .putBoolean(KEY_PREV_VOICE, VoiceAnswer.switchedOn(c))
             if (autoAnswer(c)) e.putBoolean(AutoAnswer.KEY_ENABLED, true).putInt(AutoAnswer.KEY_DELAY, delaySeconds(c))
             if (voiceAnswer(c)) e.putBoolean(VoiceAnswer.KEY_ENABLED, true)
+            // Turned on by hand while on by itself: it stays on until turned off by hand.
+            if (by == null || !isOn(c)) e.putString(KEY_BY, by)
             e.putBoolean(KEY_ON, true).apply()
         } else {
             if (!isOn(c)) return true
-            val e = p.edit().putBoolean(KEY_ON, false)
+            val e = p.edit().putBoolean(KEY_ON, false).remove(KEY_BY)
             // Put back what was there; a setting changed by hand meanwhile stays as it is.
             if (autoAnswer(c) && p.getBoolean(AutoAnswer.KEY_ENABLED, false) && AutoAnswer.delaySeconds(c) == delaySeconds(c))
                 e.putBoolean(AutoAnswer.KEY_ENABLED, p.getBoolean(KEY_PREV_ENABLED, false))
@@ -68,7 +78,7 @@ object BikeMode {
             if (voiceAnswer(c) && VoiceAnswer.switchedOn(c)) e.putBoolean(VoiceAnswer.KEY_ENABLED, p.getBoolean(KEY_PREV_VOICE, false))
             e.apply()
         }
-        PacketLogger.log("CALL: bike mode ${if (on) "on (${describe(c)})" else "off"}")
+        PacketLogger.log("CALL: bike mode ${if (on) "on (${describe(c)})" else "off"}${by?.let { " by itself: $it" } ?: ""}")
         refreshTile(c)
         return true
     }
@@ -79,9 +89,11 @@ object BikeMode {
      */
     fun choose(c: Context, change: (SharedPreferences.Editor) -> Unit): Boolean {
         val wasOn = isOn(c)
+        // On by itself stays on by itself: it still turns off by itself.
+        val was = by(c)
         if (wasOn) set(c, false)
         prefs(c).edit().also(change).apply()
-        return !wasOn || set(c, true)
+        return !wasOn || set(c, true, was)
     }
 
     /** For the log: what this Bike mode turns on. */

@@ -5,9 +5,15 @@ import com.spizganed.quickbuds.bluetooth.PacketLogger
 import com.spizganed.quickbuds.ui.ThemeRes
 import org.json.JSONArray
 import org.json.JSONObject
+import java.time.Instant
+import java.time.YearMonth
+import java.time.ZoneId
 
 /** One stretch of listening in which the level went down: from the first drop seen to the last one. */
 data class DrainRun(val endMs: Long, val dropPct: Int, val durationMs: Long)
+
+/** One month of closed runs ([BatteryDrain.addRun]): the drop and the listening time added up. */
+data class MonthDrain(val dropPct: Int, val durationMs: Long)
 
 /** One device's drain history and the stretch now being measured. */
 data class DrainState(
@@ -85,6 +91,51 @@ object BatteryDrain {
     /** How long [levelPct] lasts at [rate]. */
     fun lastsMs(levelPct: Int, rate: Rate): Long = (levelPct / rate.pctPerHour * 3_600_000.0).toLong()
 
+    // --- Battery health: one sum per month, kept for [MAX_MONTHS] (the runs go after [WINDOW_MS]) ---
+
+    /** Months kept per device, the month of now included. */
+    const val MAX_MONTHS = 24
+    /** Months the health chart shows. */
+    const val SHOWN_MONTHS = 12
+
+    /** The month of [ms] in [zone], as "yyyy-MM". */
+    fun monthOf(ms: Long, zone: ZoneId): String = YearMonth.from(Instant.ofEpochMilli(ms).atZone(zone)).toString()
+
+    /**
+     * [months] with [run] added to the month of its end. Months older than [MAX_MONTHS] before the month of
+     * [nowMs] go.
+     */
+    fun addRun(months: Map<String, MonthDrain>, run: DrainRun, nowMs: Long, zone: ZoneId): Map<String, MonthDrain> {
+        val key = monthOf(run.endMs, zone)
+        val m = months[key] ?: MonthDrain(0, 0L)
+        val oldest = YearMonth.from(Instant.ofEpochMilli(nowMs).atZone(zone)).minusMonths(MAX_MONTHS - 1L).toString()
+        return (months + (key to MonthDrain(m.dropPct + run.dropPct, m.durationMs + run.durationMs)))
+            .filterKeys { it >= oldest }
+    }
+
+    /** The months of [runs]: the first summary, from the runs kept before it existed. */
+    fun seed(runs: List<DrainRun>, nowMs: Long, zone: ZoneId): Map<String, MonthDrain> =
+        runs.fold(emptyMap()) { m, r -> addRun(m, r, nowMs, zone) }
+
+    /** The run that [after] closed, or null when [before] to [after] closed none. */
+    fun closedRun(before: DrainState, after: DrainState): DrainRun? =
+        after.runs.lastOrNull()?.takeIf { it.endMs > (before.runs.lastOrNull()?.endMs ?: Long.MIN_VALUE) }
+
+    /** How long a full charge lasted in month [m]; null with less than [MIN_LISTENED_MS] or [MIN_DROP_PCT] in it. */
+    fun fullChargeMs(m: MonthDrain): Long? {
+        if (m.durationMs < MIN_LISTENED_MS || m.dropPct < MIN_DROP_PCT) return null
+        return lastsMs(100, Rate(m.dropPct * 3_600_000.0 / m.durationMs, m.durationMs))
+    }
+
+    /** The full charge per month: the last [SHOWN_MONTHS] months with enough data, oldest first. */
+    fun health(months: Map<String, MonthDrain>): List<Pair<YearMonth, Long>> =
+        months.entries.sortedBy { it.key }
+            .mapNotNull { (k, m) -> fullChargeMs(m)?.let { YearMonth.parse(k) to it } }
+            .takeLast(SHOWN_MONTHS)
+
+    /** [latestMs] against [firstMs], in percent, rounded: -6 is 6% less. */
+    fun changePct(firstMs: Long, latestMs: Long): Int = Math.round((latestMs - firstMs) * 100.0 / firstMs).toInt()
+
     /**
      * The level that runs out first: the lower bud of those out of the case and not charging. Null when no bud
      * is in use (both in the case or charging).
@@ -140,19 +191,53 @@ object BatteryDrain {
 
     fun record(c: Context, deviceId: String, level: Int, draining: Boolean, buds: Int = 0) = synchronized(lock) {
         val before = load(c, deviceId)
-        val after = onLevel(before, System.currentTimeMillis(), level, draining, buds)
-        if (after != before) save(c, deviceId, after)
-        if (after.runs.size > before.runs.size) after.runs.last().let {
-            PacketLogger.log("BATTERY DRAIN: $deviceId ${it.dropPct}% in ${it.durationMs / 60_000} min")
-        }
+        store(c, deviceId, before, onLevel(before, System.currentTimeMillis(), level, draining, buds))
     }
 
     fun disconnected(c: Context, deviceId: String) = synchronized(lock) {
         for (id in listOf(deviceId, budId(deviceId, true), budId(deviceId, false))) {
             val before = load(c, id)
-            val after = onDisconnected(before, System.currentTimeMillis())
-            if (after != before) save(c, id, after)
+            store(c, id, before, onDisconnected(before, System.currentTimeMillis()))
         }
+    }
+
+    /**
+     * Saves [after]; a run it closed goes into its month too. Was: the log compared the number of runs, and missed
+     * a run at [MAX_RUNS].
+     */
+    private fun store(c: Context, deviceId: String, before: DrainState, after: DrainState) {
+        if (after != before) save(c, deviceId, after)
+        val run = closedRun(before, after) ?: return
+        PacketLogger.log("BATTERY DRAIN: $deviceId ${run.dropPct}% in ${run.durationMs / 60_000} min")
+        val now = System.currentTimeMillis()
+        val zone = ZoneId.systemDefault()
+        saveMonths(c, deviceId, addRun(loadMonths(c, deviceId, before.runs, now, zone), run, now, zone))
+    }
+
+    private const val MONTHS_PREFIX = "batteryMonths:"
+
+    /**
+     * The months of [deviceId]. Not stored yet: the months of [seedRuns], so the history shows at once. Was: no
+     * months.
+     */
+    private fun loadMonths(c: Context, deviceId: String, seedRuns: List<DrainRun>, nowMs: Long, zone: ZoneId): Map<String, MonthDrain> {
+        val raw = prefs(c).getString(MONTHS_PREFIX + deviceId, null)
+            ?: return seed(seedRuns, nowMs, zone).also { saveMonths(c, deviceId, it) }
+        return runCatching {
+            val o = JSONObject(raw)
+            o.keys().asSequence().associateWith { k -> o.getJSONObject(k).let { MonthDrain(it.getInt("drop"), it.getLong("ms")) } }
+        }.onFailure { PacketLogger.error("battery months read", it) }.getOrDefault(emptyMap())
+    }
+
+    private fun saveMonths(c: Context, deviceId: String, months: Map<String, MonthDrain>) {
+        val o = JSONObject()
+        months.forEach { (k, m) -> o.put(k, JSONObject().put("drop", m.dropPct).put("ms", m.durationMs)) }
+        prefs(c).edit().putString(MONTHS_PREFIX + deviceId, o.toString()).apply()
+    }
+
+    /** The months of [deviceId] (Battery life › Battery health). */
+    fun months(c: Context, deviceId: String): Map<String, MonthDrain> = synchronized(lock) {
+        loadMonths(c, deviceId, load(c, deviceId).runs, System.currentTimeMillis(), ZoneId.systemDefault())
     }
 
     /** One bud's own history (Battery life, left and right apart): the device's id with ":L" or ":R". */

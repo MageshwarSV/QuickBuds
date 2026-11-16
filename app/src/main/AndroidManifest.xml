@@ -23,6 +23,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Auto-reply: a call declined by voice gets a text (off by default). -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <!-- Phones without a SIM (tablets) can still install the app; auto-reply then does nothing. -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <!-- Widget taps tick through the vibrator (Haptics.tick); no view of ours is on screen then. -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Loss protection: keeps signal reads going for a few minutes after the screen goes off (ProximityMonitor). -->
@@ -197,6 +201,19 @@
             android:name=".ui.BatteryLifeActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.ChargeReminderActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <!-- Charge reminder: the daily alarm, set again after a reboot or an update. -->
+        <receiver
+            android:name=".notify.ChargeReminderReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".ui.AutoAnswerActivity"
             android:exported="false" />

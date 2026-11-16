@@ -50,6 +50,8 @@ class VoiceMusicLoop(context: Context) {
     private var running = false
     /** A call rings: "Hey Jarvis, cut the call" rejects it. */
     private var ringing = false
+    /** The ringing call's number (with the call log permission): "cut the call" may text it ([AutoReply]). */
+    private var ringingNumber: String? = null
     /**
      * In a call: not listening. Android silences other apps' microphones during a call (2026-10-19, the phone's own
      * audio log: "pack:com.spizganed.quickbuds … silenced:true"), so "cut the call" cannot be heard then.
@@ -92,16 +94,22 @@ class VoiceMusicLoop(context: Context) {
         override fun onReceive(ctx: Context, intent: Intent) {
             when (intent.getStringExtra(TelephonyManager.EXTRA_STATE)) {
                 // Ringing: keep listening for "Hey Jarvis, cut the call". Voice answer stops it while it asks.
-                TelephonyManager.EXTRA_STATE_RINGING -> ringing = true
+                TelephonyManager.EXTRA_STATE_RINGING -> {
+                    ringing = true
+                    @Suppress("DEPRECATION")
+                    intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)?.takeIf { it.isNotBlank() }?.let { ringingNumber = it }
+                }
                 // In the call: Android silences other apps' microphones, so stop until it ends.
                 TelephonyManager.EXTRA_STATE_OFFHOOK -> if (!inCall) {
                     ringing = false
+                    ringingNumber = null
                     inCall = true
                     sync()
                 }
                 // The call ended: back to normal listening, with the earbud microphone set again.
                 TelephonyManager.EXTRA_STATE_IDLE -> if (ringing || inCall) {
                     ringing = false
+                    ringingNumber = null
                     inCall = false
                     stop("call ended")
                     main.postDelayed({ sync() }, 2_000)
@@ -276,7 +284,8 @@ class VoiceMusicLoop(context: Context) {
                 log("heard \"$text\" -> ${h.command}")
                 // "Cut the call" rejects a ringing call; with none ringing there is nothing to cut.
                 if (h.command == MusicCommands.Command.EndCall && !ringing) log("no ringing call to cut")
-                else VoiceMusic.run(c, h.command)
+                else if (VoiceMusic.run(c, h.command) && h.command == MusicCommands.Command.EndCall)
+                    com.spizganed.quickbuds.calls.AutoReply.declined(c, ringingNumber, "Hey Jarvis")
             }
             MusicCommands.Heard.Nothing -> if (++reported <= REPORT_MAX) log("heard \"$text\": no command")
         }

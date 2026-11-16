@@ -81,6 +81,11 @@ class SettingsActivity : Activity() {
         retentionSubtitle = SettingRowFactory.subtitle(this, retentionRow)
         val sensitivityRow = link(R.drawable.ic_warning, R.string.settings_loss_sensitivity, 0) { sensitivitySheet() }
         sensitivitySubtitle = SettingRowFactory.subtitle(this, sensitivityRow)
+        // Charge reminder: a daily notification when a bud or the case is low.
+        val reminderRow = link(R.drawable.ic_case, R.string.cr_title, 0) {
+            startActivity(Intent(this, ChargeReminderActivity::class.java))
+        }
+        reminderSubtitle = SettingRowFactory.subtitle(this, reminderRow)
         section(
             R.string.settings_usage_section,
             link(R.drawable.ic_usage, R.string.usage_title, R.string.settings_stats_sub) {
@@ -97,6 +102,7 @@ class SettingsActivity : Activity() {
             caseRow(prefs),
             batteryRow(prefs),
             lowBatteryRow(prefs),
+            reminderRow,
             sensitivityRow
         )
 
@@ -138,6 +144,7 @@ class SettingsActivity : Activity() {
     private var themeSubtitle: android.widget.TextView? = null
     private var callsSubtitle: android.widget.TextView? = null
     private var bikeSubtitle: android.widget.TextView? = null
+    private var reminderSubtitle: android.widget.TextView? = null
 
     /**
      * Background service switch. Turning it off asks first (the widget and the automatic reconnect
@@ -370,6 +377,7 @@ class SettingsActivity : Activity() {
         themeSubtitle?.text = ThemeRes.palette(this).name
         callsSubtitle?.text = AutoAnswerActivity.summary(this)
         bikeSubtitle?.text = BikeModeActivity.summary(this)
+        reminderSubtitle?.text = ChargeReminderActivity.summary(this)
         renderUsageValues()
         // Back from Android's notification settings: the rows say what is allowed now.
         renderNotifyRows()

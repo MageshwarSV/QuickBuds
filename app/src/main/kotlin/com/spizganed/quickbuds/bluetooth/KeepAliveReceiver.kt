@@ -21,6 +21,10 @@ class KeepAliveReceiver : BroadcastReceiver() {
         val device = IntentCompat.getParcelableExtra(intent, BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
 
         if (device == null) return
+        // Bike mode by itself: a chosen device (a bike intercom, a car) of any kind connects or goes.
+        if (action == BluetoothDevice.ACTION_ACL_CONNECTED || action == BluetoothDevice.ACTION_ACL_DISCONNECTED) {
+            com.spizganed.quickbuds.calls.BikeAuto.onDevice(context, device.address, action == BluetoothDevice.ACTION_ACL_CONNECTED)
+        }
         val buds = BudsDevice.isBuds(context, device)
         if (!buds && !AudioDevice.isAudio(device)) return
 

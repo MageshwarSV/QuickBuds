@@ -97,11 +97,13 @@ object VoiceAnswer {
      * started (the caller qualifies): the timed auto-answer then waits for the reply. [undecided] runs when the
      * reply was no YES or NO and the call still rings: auto-answer's turn.
      */
-    fun onRinging(context: Context, number: String, headsetName: String?, undecided: () -> Unit): Boolean {
+    fun onRinging(context: Context, number: String, headsetName: String?, ignoreFilter: Boolean = false, undecided: () -> Unit): Boolean {
         val c = context.applicationContext
         if (!enabled(c) || session != null) return false
         val name = contactName(c, number)
-        if (!promptFor(number, name, AutoAnswer.filter(c), AutoAnswer.contacts(c))) {
+        // A repeated call ([AutoAnswer.repeatCall]) gets through the contact filter.
+        val filter = if (ignoreFilter) AutoAnswer.Filter.ALL else AutoAnswer.filter(c)
+        if (!promptFor(number, name, filter, AutoAnswer.contacts(c))) {
             PacketLogger.log("VOICE ANSWER: no prompt (${if (name == null) "not a contact" else "the contact filter"})")
             return false
         }
@@ -119,7 +121,7 @@ object VoiceAnswer {
         var early: String? = null
         // Unclear replies listen again: with auto-answer on, until it may answer; else while the call rings.
         val listen = if (AutoAnswer.enabled(c)) LISTEN_WITH_AUTO_MS else LISTEN_MS
-        s.run(prompt(name!!), PROMPT_LOCALE, listen) { answer, detail -> if (started) act(c, answer, undecided) else early = detail }
+        s.run(prompt(name!!), PROMPT_LOCALE, listen) { answer, detail -> if (started) act(c, answer, number, undecided) else early = detail }
         started = true
         // It could not ask at all (no on-device recognizer, no Bluetooth output): as if voice answer were off, so
         // auto-answer keeps its own delay. Was: the call was answered at once.
@@ -141,7 +143,7 @@ object VoiceAnswer {
     }
 
     @SuppressLint("MissingPermission")
-    private fun act(c: Context, answer: VoicePhrases.Answer, undecided: () -> Unit) {
+    private fun act(c: Context, answer: VoicePhrases.Answer, number: String, undecided: () -> Unit) {
         session = null
         val ringing = runCatching {
             c.getSystemService(TelephonyManager::class.java)?.callState == TelephonyManager.CALL_STATE_RINGING
@@ -155,6 +157,7 @@ object VoiceAnswer {
             Action.DECLINE -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) runCatching {
                 @Suppress("DEPRECATION") val ended = tm?.endCall() == true
                 PacketLogger.log("VOICE ANSWER: decline ${if (ended) "done" else "refused by Android"}")
+                if (ended) AutoReply.declined(c, number, "voice answer")
             }.onFailure { PacketLogger.error("voice answer decline", it) }
             else PacketLogger.log("VOICE ANSWER: decline needs Android 9")
             Action.NONE -> if (ringing) { PacketLogger.log("VOICE ANSWER: no clear reply"); undecided() }

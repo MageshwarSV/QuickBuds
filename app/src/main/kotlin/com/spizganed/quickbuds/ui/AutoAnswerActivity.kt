@@ -18,6 +18,7 @@ import com.spizganed.quickbuds.R
 import com.spizganed.quickbuds.bluetooth.BudsService
 import com.spizganed.quickbuds.bluetooth.PacketLogger
 import com.spizganed.quickbuds.calls.AutoAnswer
+import com.spizganed.quickbuds.calls.AutoReply
 import com.spizganed.quickbuds.calls.VoiceAnswer
 import com.spizganed.quickbuds.calls.VoicePhrases
 
@@ -79,6 +80,13 @@ class AutoAnswerActivity : Activity() {
         }
         secondSwitch.setOnCheckedChangeListener { _, on -> AutoAnswer.setSecondCall(this, on) }
 
+        // A repeated call: the same number again within 3 minutes gets through the contact filter.
+        val repeatSwitch = SettingRowFactory.buildSwitch(this, AutoAnswer.repeatOn(this))
+        val repeatRow = SettingRowFactory.build(this, 0, R.string.aa_repeat_title, R.string.aa_repeat_sub, repeatSwitch) {
+            repeatSwitch.performClick()
+        }
+        repeatSwitch.setOnCheckedChangeListener { _, on -> AutoAnswer.setRepeat(this, on) }
+
         voiceSwitch = SettingRowFactory.buildSwitch(this, voiceOn())
         val voiceRow = SettingRowFactory.build(this, R.drawable.ic_earbud, R.string.va_title, 0, voiceSwitch) { voiceSwitch.performClick() }
         voiceSub = SettingRowFactory.subtitle(this, voiceRow)
@@ -87,12 +95,22 @@ class AutoAnswerActivity : Activity() {
         val tryRow = SettingRowFactory.build(this, 0, R.string.va_try_title, R.string.va_try_sub, null) { tryNow() }
         tryResult = SettingRowFactory.subtitle(this, tryRow)
 
+        // Auto-reply: a call declined by voice gets a text message.
+        replySwitch = SettingRowFactory.buildSwitch(this, AutoReply.switchedOn(this) && AutoReply.permitted(this))
+        val replyRow = SettingRowFactory.build(this, 0, R.string.ar_title, R.string.ar_sub, replySwitch) { replySwitch.performClick() }
+        replySwitch.setOnCheckedChangeListener(replyListener)
+        val messageRow = SettingRowFactory.build(this, 0, R.string.ar_message, 0, SettingRowFactory.buildChevron(this)) { editMessage() }
+        messageSub = SettingRowFactory.subtitle(this, messageRow)
+
         root.addView(SettingRowFactory.card(this).apply {
             SettingRowFactory.addRow(this, row)
             SettingRowFactory.addRow(this, delayRow)
             SettingRowFactory.addRow(this, secondRow)
+            SettingRowFactory.addRow(this, repeatRow)
             SettingRowFactory.addRow(this, voiceRow)
             SettingRowFactory.addRow(this, tryRow)
+            SettingRowFactory.addRow(this, replyRow)
+            SettingRowFactory.addRow(this, messageRow)
         })
 
         // One contact filter for auto-answer, Bike mode and voice answer.
@@ -206,7 +224,37 @@ class AutoAnswerActivity : Activity() {
     }
 
     /** Subtitles, and the contact list while a contact filter is chosen. */
+    private lateinit var replySwitch: Switch
+    private lateinit var messageSub: TextView
+
+    private val replyListener = CompoundButton.OnCheckedChangeListener { _, on ->
+        if (on && !AutoReply.permitted(this)) {
+            quietReply(false)
+            requestPermissions(arrayOf(android.Manifest.permission.SEND_SMS), REQUEST_SMS)
+            return@OnCheckedChangeListener
+        }
+        AutoReply.setEnabled(this, on)
+    }
+
+    private fun quietReply(on: Boolean) {
+        replySwitch.setOnCheckedChangeListener(null)
+        replySwitch.isChecked = on
+        replySwitch.setOnCheckedChangeListener(replyListener)
+    }
+
+    /** The text it sends: one SMS long at most. */
+    private fun editMessage() {
+        val sheet = BottomSheetDialog(this).title(getString(R.string.ar_message)).input(AutoReply.text(this), AutoReply.MAX_LENGTH)
+        sheet.confirm(getString(R.string.eq_save)) {
+            sheet.inputValue().takeIf { it.isNotBlank() }?.let { AutoReply.setText(this, it) }
+            sheet.close()
+            paint()
+        }.cancel(getString(R.string.dialog_cancel)) { sheet.close() }.show()
+    }
+
     private fun paint() {
+        quietReply(AutoReply.switchedOn(this) && AutoReply.permitted(this))
+        messageSub.text = AutoReply.text(this)
         val on = isOn()
         val delay = AutoAnswer.delaySeconds(this)
         val filter = AutoAnswer.filter(this)
@@ -329,6 +377,7 @@ class AutoAnswerActivity : Activity() {
                 prefs().edit().putBoolean(AutoAnswer.KEY_ENABLED, true).apply()
                 quietSwitch(true)
             } else showPermissionHelp(R.string.auto_answer_perm_title, R.string.auto_answer_perm_body)
+            REQUEST_SMS -> if (AutoReply.permitted(this)) AutoReply.setEnabled(this, true)
             REQUEST_VOICE -> if (VoiceAnswer.permitted(this)) {
                 VoiceAnswer.setEnabled(this, true)
                 quietVoiceSwitch(true)
@@ -347,6 +396,7 @@ class AutoAnswerActivity : Activity() {
         private const val REQUEST_VOICE = 64
         /** Try it now asks for the microphone alone: granting it does not switch voice answer on. */
         private const val REQUEST_MIC = 65
+        private const val REQUEST_SMS = 66
 
         /** One line for the rows that open this screen: auto-answer (off, or the delay and which calls), and voice answer. */
         fun summary(c: Context): String {
