@@ -685,6 +685,12 @@
     <string name="bl_case_learning">Fodral: lär sig. Ladda öronsnäckorna i fodralet några gånger för en uppskattning.</string>
     <string name="bl_last_known">Senast kända nivåer, %1$s</string>
     <string name="bl_shared">Varje öronsnäcka får ett eget värde efter cirka 30 minuters lyssning. Tills dess visas det gemensamma värdet för båda öronsnäckorna.</string>
+    <string name="bs_fast_pair">Fast Pair-sändning</string>
+    <string name="bs_apple">AirPods-sändning</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">Hörlurarnas eget protokoll (test)</string>
+    <string name="bs_updated">Uppdaterad %1$s</string>
+    <string name="bs_combined">En nivå för båda lurarna: de rapporterar inte vänster och höger</string>
     <string name="bh_title">Batterihälsa</string>
     <string name="bh_learning">Batterihälsa: lär sig. Varje månads lyssnande lägger till en stapel.</string>
     <string name="bh_less">En full laddning räcker %1$d%% kortare än i %2$s</string>

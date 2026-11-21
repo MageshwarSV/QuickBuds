@@ -211,6 +211,23 @@ class DevicesTile(
         val sub = listOfNotNull(DeviceCatalog.brandOf(d.name)?.name, DeviceKinds.label(d.kind)?.let { activity.getString(it) })
         if (sub.isNotEmpty()) addView(line(sub.joinToString(" · "), 13f, R.attr.appColorTextSecondary),
             LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = dp(2f) })
+        // Where left, right and case came from, and when; or why there is one level only.
+        source(d)?.let { addView(line(it, 12f, R.attr.appColorTextSecondary),
+            LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = dp(6f) }) }
+    }
+
+    private fun source(d: ConnectedDevices.Entry): String? {
+        val s = d.source
+        if (d.parts == null || s == null) return if (d.level > 0 && d.kind == DeviceCatalog.Kind.TWS) activity.getString(R.string.bs_combined) else null
+        val name = activity.getString(when (s) {
+            com.spizganed.quickbuds.bluetooth.battery.BatterySource.FAST_PAIR_ADVERT -> R.string.bs_fast_pair
+            com.spizganed.quickbuds.bluetooth.battery.BatterySource.APPLE_ADVERT -> R.string.bs_apple
+            com.spizganed.quickbuds.bluetooth.battery.BatterySource.FAST_PAIR_STREAM -> R.string.bs_stream
+            com.spizganed.quickbuds.bluetooth.battery.BatterySource.BRAND -> R.string.bs_brand
+        })
+        val at = if (d.atMs > 0) activity.getString(R.string.bs_updated,
+            android.text.format.DateFormat.getTimeFormat(activity).format(java.util.Date(d.atMs))) else null
+        return listOfNotNull(name, at).joinToString(" · ")
     }
 
     private fun rings(d: ConnectedDevices.Entry): View = LinearLayout(activity).apply {

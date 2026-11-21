@@ -686,6 +686,12 @@
     <string name="bl_case_learning">Casing: sedang belajar. Isi daya earbud di casing beberapa kali untuk mendapatkan perkiraan.</string>
     <string name="bl_last_known">Level terakhir diketahui, %1$s</string>
     <string name="bl_shared">Setiap earbud mendapat angkanya sendiri setelah sekitar 30 menit mendengarkan. Sampai saat itu, angka yang tampil adalah gabungan kedua earbud.</string>
+    <string name="bs_fast_pair">Siaran Fast Pair</string>
+    <string name="bs_apple">Siaran AirPods</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">Protokol bawaan earbud (uji coba)</string>
+    <string name="bs_updated">Diperbarui %1$s</string>
+    <string name="bs_combined">Satu level untuk kedua earbud: tidak melaporkan kiri dan kanan</string>
     <string name="bh_title">Kesehatan baterai</string>
     <string name="bh_learning">Kesehatan baterai: sedang belajar. Setiap bulan mendengarkan menambah satu batang.</string>
     <string name="bh_less">Satu kali isi penuh bertahan %1$d%% lebih singkat daripada %2$s</string>

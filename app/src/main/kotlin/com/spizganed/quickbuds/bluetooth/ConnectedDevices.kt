@@ -9,10 +9,14 @@ import android.os.Looper
  */
 object ConnectedDevices {
 
-    /** [level] -1 until the device reports one; [parts] left, right and case when Fast Pair is trusted. */
+    /**
+     * [level] -1 until the device reports one; [parts] left, right and case when a source gives them, [source] which
+     * one and [atMs] when (wall clock).
+     */
     data class Entry(
         val address: String, val name: String, val kind: DeviceCatalog.Kind?, val level: Int,
-        val parts: FastPairBattery.Levels?
+        val parts: FastPairBattery.Levels?,
+        val source: com.spizganed.quickbuds.bluetooth.battery.BatterySource? = null, val atMs: Long = 0L
     )
 
     private val entries = LinkedHashMap<String, Entry>()

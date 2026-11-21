@@ -686,6 +686,12 @@
     <string name="bl_case_learning">เคส: กำลังเรียนรู้ ชาร์จหูฟังในเคสสองสามครั้งเพื่อให้ได้ค่าประมาณ</string>
     <string name="bl_last_known">ระดับล่าสุดที่ทราบ, %1$s</string>
     <string name="bl_shared">หลังฟังประมาณ 30 นาที หูฟังแต่ละข้างจะมีค่าของตัวเอง จนถึงตอนนั้นจะแสดงค่ารวมของหูฟังทั้งสองข้าง</string>
+    <string name="bs_fast_pair">การกระจายสัญญาณ Fast Pair</string>
+    <string name="bs_apple">การกระจายสัญญาณ AirPods</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">โปรโตคอลของหูฟังเอง (ทดสอบ)</string>
+    <string name="bs_updated">อัปเดตเมื่อ %1$s</string>
+    <string name="bs_combined">ระดับเดียวสำหรับหูฟังทั้งสองข้าง: ไม่รายงานซ้ายและขวาแยกกัน</string>
     <string name="bh_title">สุขภาพแบตเตอรี่</string>
     <string name="bh_learning">สุขภาพแบตเตอรี่: กำลังเรียนรู้ ทุกเดือนที่ฟังจะเพิ่มแท่งกราฟหนึ่งแท่ง</string>
     <string name="bh_less">ชาร์จเต็มใช้ได้น้อยกว่าใน %2$s อยู่ %1$d%%</string>

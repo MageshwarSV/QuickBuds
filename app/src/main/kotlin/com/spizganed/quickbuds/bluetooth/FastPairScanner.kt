@@ -21,10 +21,19 @@ import android.os.SystemClock
  * scan: Android allows it with the screen off and stops it with the app. [onLevels] gets what [FastPairBattery.Picker]
  * trusts after each window, or null.
  */
-class FastPairScanner(private val context: Context, private val onLevels: (FastPairBattery.Levels?) -> Unit) {
+class FastPairScanner(
+    private val context: Context,
+    private val onLevels: (FastPairBattery.Levels?) -> Unit,
+    /** AirPods and Beats ([com.spizganed.quickbuds.bluetooth.battery.AppleAdvert]): the window's pick, or null. */
+    private val onApple: (FastPairBattery.Levels?) -> Unit = {}
+) {
 
     private val handler = Handler(Looper.getMainLooper())
     private val picker = FastPairBattery.Picker()
+    private val applePicker = com.spizganed.quickbuds.bluetooth.battery.AppleAdvert.Picker()
+    /** Set by [start]: what the window listens for. */
+    private var fastPairOn = false
+    private var appleOn = false
     private var running = false
     private var scanning = false
     /** The standard level of the connected earbuds, for the picker's cross-check. */
@@ -38,7 +47,11 @@ class FastPairScanner(private val context: Context, private val onLevels: (FastP
 
     private val callback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
-            val data = result.scanRecord?.getServiceData(FAST_PAIR) ?: return
+            val record = result.scanRecord ?: return
+            record.getManufacturerSpecificData(com.spizganed.quickbuds.bluetooth.battery.AppleAdvert.COMPANY)
+                ?.let { com.spizganed.quickbuds.bluetooth.battery.AppleAdvert.parse(it) }
+                ?.let { levels -> handler.post { applePicker.onAdvert(result.rssi, levels) } }
+            val data = record.getServiceData(FAST_PAIR) ?: return
             val levels = FastPairBattery.parse(data) ?: return
             handler.post { picker.onAdvert(result.device.address, result.rssi, levels, SystemClock.elapsedRealtime()) }
         }
@@ -50,35 +63,59 @@ class FastPairScanner(private val context: Context, private val onLevels: (FastP
             startWindow()
             handler.postDelayed({
                 stopWindow()
-                val v = picker.decide(SystemClock.elapsedRealtime(), standardLevel, ownLevels())
-                val kind = v.reason.substringBefore(':') + (v.levels?.let { " L=${it.left} R=${it.right} C=${it.case}" } ?: "")
-                if (kind != lastLogged) { lastLogged = kind; PacketLogger.log("FASTPAIR: ${v.reason}") }
-                onLevels(v.levels)
+                if (fastPairOn) {
+                    val v = picker.decide(SystemClock.elapsedRealtime(), standardLevel, ownLevels())
+                    val kind = v.reason.substringBefore(':') + (v.levels?.let { " L=${it.left} R=${it.right} C=${it.case}" } ?: "")
+                    if (kind != lastLogged) { lastLogged = kind; PacketLogger.log("FASTPAIR: ${v.reason}") }
+                    onLevels(v.levels)
+                }
+                if (appleOn) {
+                    val a = applePicker.take()
+                    val kind = "apple " + (a?.let { "L=${it.left} R=${it.right} C=${it.case}" } ?: "none near")
+                    if (kind != lastApple) { lastApple = kind; PacketLogger.log("FASTPAIR: $kind") }
+                    onApple(a)
+                }
             }, LISTEN_MS)
             handler.postDelayed(this, EVERY_MS)
         }
     }
 
-    fun start() {
-        if (running || !allowed()) return
+    /** Listens for Fast Pair ([fastPair]) and AirPods or Beats ([apple]) broadcasts; both false stops. */
+    fun start(fastPair: Boolean = true, apple: Boolean = false) {
+        if (!fastPair && !apple) return stop()
+        val changed = fastPair != fastPairOn || apple != appleOn
+        fastPairOn = fastPair
+        appleOn = apple
+        if (running && !changed) return
+        if (running) stop().also { fastPairOn = fastPair; appleOn = apple }
+        if (!allowed()) return
         running = true
         handler.post(cycle)
     }
+
+    private var lastApple: String? = null
 
     fun stop() {
         running = false
         handler.removeCallbacksAndMessages(null)
         stopWindow()
         picker.clear()
+        applePicker.take()
         lastLogged = null
+        lastApple = null
     }
 
     @SuppressLint("MissingPermission")
     private fun startWindow() {
         val scanner = context.getSystemService(BluetoothManager::class.java)?.adapter?.bluetoothLeScanner ?: return
-        val filter = ScanFilter.Builder().setServiceData(FAST_PAIR, ByteArray(0)).build()
+        val filters = listOfNotNull(
+            if (fastPairOn) ScanFilter.Builder().setServiceData(FAST_PAIR, ByteArray(0)).build() else null,
+            // Type and length only: the rest of the message changes.
+            if (appleOn) ScanFilter.Builder().setManufacturerData(com.spizganed.quickbuds.bluetooth.battery.AppleAdvert.COMPANY,
+                byteArrayOf(0x07, 0x19), byteArrayOf(-1, -1)).build() else null
+        )
         val settings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER).build()
-        scanning = runCatching { scanner.startScan(listOf(filter), settings, callback) }.isSuccess
+        scanning = runCatching { scanner.startScan(filters, settings, callback) }.isSuccess
     }
 
     @SuppressLint("MissingPermission")

@@ -4,6 +4,10 @@ import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import com.spizganed.quickbuds.bluetooth.battery.BatteryResolver
+import com.spizganed.quickbuds.bluetooth.battery.BatterySource
+import com.spizganed.quickbuds.bluetooth.battery.BrandBatteryReader
+import com.spizganed.quickbuds.bluetooth.battery.SourceReading
 import com.spizganed.quickbuds.notify.BatteryCard
 import com.spizganed.quickbuds.notify.LowBatteryAlert
 import com.spizganed.quickbuds.proximity.LossNotifier
@@ -18,7 +22,9 @@ import com.spizganed.quickbuds.usage.Usage
  *
  *  - the loss warning: its own [ProximityMonitor] per device (the phone reads the signal; no case or wear state,
  *    so the signal alone decides);
- *  - the battery card and the low-battery alert, from the one level the headset reports for the pair;
+ *  - the battery card and the low-battery alert, from the one level the headset reports for the pair, and left,
+ *    right and case when a source gives them ([BatteryResolver]): the Fast Pair or AirPods broadcast, the Fast
+ *    Pair message stream, or the brand's own protocol ([BrandBatteryReader]);
  *  - usage heartbeats, so a session the phone restarts through ends near its real end.
  *
  * Usage sessions themselves come from the ACL broadcasts in [KeepAliveReceiver], as for the supported models.
@@ -32,16 +38,32 @@ class OtherEarbudsMonitor(private val context: Context) {
         val ambiguous: Boolean = false
     ) {
         var level = -1
+        /** What [readings] resolve to: left, right and case, or null (then the one [level]). */
         var parts: FastPairBattery.Levels? = null
+        var partsSource: BatterySource? = null
+        var partsAt = 0L
+        /** The latest reading of each source. */
+        val readings = HashMap<BatterySource, SourceReading>()
     }
 
-    /** Left, right and case from Fast Pair broadcasts, trusted only under [FastPairBattery.Picker]'s safeguards. */
-    private val fastPair = FastPairScanner(context) { levels ->
-        // With two pairs of other earbuds connected, whose broadcast it is cannot be told: one ring each.
-        val t = tracked.values.singleOrNull() ?: return@FastPairScanner
-        if (t.parts == levels) return@FastPairScanner
+    /** Sets or clears ([levels] null) one source's reading of [t], then shows what the sources resolve to. */
+    private fun reading(t: Tracked, source: BatterySource, levels: FastPairBattery.Levels?, protocol: String? = null) {
+        if (levels == null) t.readings.remove(source)
+        else t.readings[source] = SourceReading(levels, source, System.currentTimeMillis(), protocol)
+        resolve(t)
+    }
+
+    private fun resolve(t: Tracked) {
+        val pick = BatteryResolver.pick(t.readings.values, System.currentTimeMillis(), t.level)
+        val levels = pick?.levels
+        if (t.parts == levels && t.partsSource == pick?.source && t.partsAt == (pick?.atMs ?: 0L)) return
+        if (pick?.source != t.partsSource) PacketLogger.log("OTHER EARBUDS: battery from " +
+            (pick?.let { it.protocol ?: it.source.name.lowercase() } ?: "the standard level only"))
+        val news = t.parts != levels
         t.parts = levels
-        if (levels != null) PacketLogger.log("OTHER EARBUDS: Fast Pair battery L=${levels.left} C=${levels.case} R=${levels.right}")
+        t.partsSource = pick?.source
+        t.partsAt = pick?.atMs ?: 0L
+        if (levels != null && news) PacketLogger.log("OTHER EARBUDS: battery L=${levels.left} C=${levels.case} R=${levels.right}")
         // A case reported means TWS, whatever the name suggested.
         if (levels != null && levels.case >= 0 && t.kind != DeviceCatalog.Kind.TWS) {
             t.kind = DeviceCatalog.Kind.TWS
@@ -50,6 +72,23 @@ class OtherEarbudsMonitor(private val context: Context) {
         show(t)
     }
 
+    /** AirPods or Beats: their own broadcast carries left, right and case. */
+    private fun isApple(t: Tracked) = DeviceCatalog.brandOf(t.name)?.name.let { it == "Apple" || it == "Beats" }
+
+    /** Other brands' own protocols, and the Fast Pair message stream. */
+    private val brandReader = BrandBatteryReader { address, r ->
+        tracked[address]?.let { reading(it, r.source, r.levels, r.protocol) }
+    }
+
+    /** Left, right and case from Fast Pair broadcasts, trusted only under [FastPairBattery.Picker]'s safeguards. */
+    private val fastPair = FastPairScanner(context, onLevels = { levels ->
+        // With two pairs of other earbuds connected, whose broadcast it is cannot be told: one ring each.
+        tracked.values.singleOrNull()?.let { reading(it, BatterySource.FAST_PAIR_ADVERT, levels) }
+    }, onApple = { levels ->
+        // Only AirPods and Beats send it: with one pair of them connected, the nearest broadcast is theirs.
+        tracked.values.filter { isApple(it) }.singleOrNull()?.let { reading(it, BatterySource.APPLE_ADVERT, levels) }
+    })
+
     private fun show(t: Tracked) {
         publish(t)
         BatteryCard.showOther(context, t.device.address, t.name, t.level, t.parts, t.kind)
@@ -57,7 +96,7 @@ class OtherEarbudsMonitor(private val context: Context) {
 
     /** The home screen's "Connected devices" tile follows [tracked]. */
     private fun publish(t: Tracked) =
-        ConnectedDevices.put(ConnectedDevices.Entry(t.device.address, t.name, t.kind, t.level, t.parts))
+        ConnectedDevices.put(ConnectedDevices.Entry(t.device.address, t.name, t.kind, t.level, t.parts, t.partsSource, t.partsAt))
 
     /** True while the supported buds (models.json) are connected: they broadcast Fast Pair too, near the phone. */
     var supportedBudsConnected: () -> Boolean = { false }
@@ -86,11 +125,17 @@ class OtherEarbudsMonitor(private val context: Context) {
             fastPairListening = listen
             PacketLogger.log("OTHER EARBUDS: Fast Pair battery ${if (listen) "listening" else "not listening"} ($why)")
         }
-        if (listen) {
-            fastPair.standardLevel = tracked.values.first().level.takeIf { it > 0 }
-            fastPair.start()
-        } else fastPair.stop()
+        // AirPods and Beats: one pair of them connected, whatever else is.
+        val apple = BatteryCard.enabled(context) && tracked.values.count { isApple(it) } == 1
+        if (apple != appleListening) {
+            appleListening = apple
+            PacketLogger.log("OTHER EARBUDS: AirPods battery ${if (apple) "listening" else "not listening"}")
+        }
+        if (listen) fastPair.standardLevel = tracked.values.first().level.takeIf { it > 0 }
+        fastPair.start(fastPair = listen, apple = apple)
     }
+
+    private var appleListening = false
 
     private var fastPairListening = false
 
@@ -159,6 +204,8 @@ class OtherEarbudsMonitor(private val context: Context) {
         Usage.connected(context, device)
         proximity?.onConnected(device)
         AudioDevice.batteryLevel(device).takeIf { it > 0 }?.let { onBattery(device, it) }
+        // Not a speaker, a car or a receiver: the brand's own protocol, when QuickBuds knows one for it.
+        if (kind != DeviceCatalog.Kind.SPEAKER && !ambiguous) brandReader.watch(device, name)
         handler.removeCallbacks(heartbeat)
         handler.postDelayed(heartbeat, HEARTBEAT_MS)
         updateFastPair()
@@ -174,6 +221,7 @@ class OtherEarbudsMonitor(private val context: Context) {
         // Disconnected by the sleep timer: the user's own choice, not a lost device.
         val reason = if (com.spizganed.quickbuds.sleep.SleepTimer.justDisconnected()) DropReason.USER else reason0
         val t = tracked.remove(address) ?: return
+        brandReader.unwatch(address)
         PacketLogger.log("OTHER EARBUDS: disconnected ($reason)")
         // The loss warning first: its Find nearby button carries the device's name and last level from the entry.
         t.proximity?.onDisconnected(reason)
@@ -183,7 +231,13 @@ class OtherEarbudsMonitor(private val context: Context) {
         // Gone: its low-battery card says nothing true any more.
         LowBatteryAlert.clearOther(context, address)
         if (tracked.isEmpty()) handler.removeCallbacks(heartbeat)
-        tracked.values.forEach { if (it.parts != null) { it.parts = null; publish(it) } }
+        // A broadcast was matched with this device among the others: it may have been its own. What a device
+        // reported over its own link stays.
+        tracked.values.forEach {
+            it.readings.remove(BatterySource.FAST_PAIR_ADVERT)
+            it.readings.remove(BatterySource.APPLE_ADVERT)
+            resolve(it)
+        }
         updateFastPair()
     }
 
@@ -199,7 +253,10 @@ class OtherEarbudsMonitor(private val context: Context) {
         if (level <= 0) return
         t.level = level
         fastPair.standardLevel = level
-        show(t)
+        // The standard level is the cross-check of the other sources.
+        val before = t.parts
+        resolve(t)
+        if (t.parts == before) show(t)
         LowBatteryAlert.onOther(context, device.address, t.name, level, t.kind)
         // Battery life (Usage statistics): connected means in use; in the case they disconnect.
         com.spizganed.quickbuds.usage.BatteryDrain.record(context, device.address, level, draining = true)
@@ -226,6 +283,7 @@ class OtherEarbudsMonitor(private val context: Context) {
     fun destroy() {
         destroyed = true
         fastPair.stop()
+        brandReader.stop()
         onAllDisconnected(DropReason.USER)
         handler.removeCallbacksAndMessages(null)
     }

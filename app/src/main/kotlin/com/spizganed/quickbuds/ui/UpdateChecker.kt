@@ -76,7 +76,10 @@ object UpdateChecker {
         throw IllegalStateException("No Android release")
     }
 
-    /** Numeric compare of "v2.1.0" against "2.1.0-debug"; suffixes are ignored. */
+    /**
+     * Numeric compare of "v2.1.0" against "2.1.0-debug"; suffixes are ignored, except a test build: "2.1.0-test1"
+     * is older than "2.1.0", so testers get the release. Was: equal, and testers stayed on the test build.
+     */
     fun isNewer(remote: String, local: String): Boolean {
         val a = remote.trim().removePrefix("v").substringBefore('-').split('.')
         val b = local.trim().removePrefix("v").substringBefore('-').split('.')
@@ -85,7 +88,7 @@ object UpdateChecker {
             val y = b.getOrNull(i)?.toIntOrNull() ?: 0
             if (x != y) return x > y
         }
-        return false
+        return '-' !in remote && local.substringAfter('-', "").startsWith("test")
     }
 
     /** Streams [url] into [dest], reporting 0..100 (or -1 when the size is unknown). Blocking. */

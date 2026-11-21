@@ -686,6 +686,12 @@
     <string name="bl_case_learning">Estuche: aprendiendo. Carga los auriculares en el estuche varias veces para obtener una estimación.</string>
     <string name="bl_last_known">Últimos niveles conocidos, %1$s</string>
     <string name="bl_shared">Cada auricular obtiene su propia cifra tras unos 30 minutos de escucha. Hasta entonces muestra la cifra de ambos auriculares juntos.</string>
+    <string name="bs_fast_pair">Difusión de Fast Pair</string>
+    <string name="bs_apple">Difusión de AirPods</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">Protocolo propio de los auriculares (prueba)</string>
+    <string name="bs_updated">Actualizado %1$s</string>
+    <string name="bs_combined">Un nivel para ambos auriculares: no informan del izquierdo y el derecho</string>
     <string name="bh_title">Salud de la batería</string>
     <string name="bh_learning">Salud de la batería: aprendiendo. Cada mes de uso añade una barra.</string>
     <string name="bh_less">Una carga completa dura un %1$d%% menos que en %2$s</string>

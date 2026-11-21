@@ -685,6 +685,12 @@
     <string name="bl_case_learning">Case: leert nog. Laad de oordopjes een paar keer op in de case voor een schatting.</string>
     <string name="bl_last_known">Laatst bekende niveaus, %1$s</string>
     <string name="bl_shared">Elk oordopje krijgt na ongeveer 30 minuten luisteren een eigen waarde. Tot die tijd toont het de waarde van beide oordopjes samen.</string>
+    <string name="bs_fast_pair">Fast Pair-uitzending</string>
+    <string name="bs_apple">AirPods-uitzending</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">Eigen protocol van de oordopjes (test)</string>
+    <string name="bs_updated">Bijgewerkt om %1$s</string>
+    <string name="bs_combined">Eén niveau voor beide oordopjes: ze melden links en rechts niet apart</string>
     <string name="bh_title">Batterijgezondheid</string>
     <string name="bh_learning">Batterijgezondheid: aan het leren. Elke maand luisteren voegt een balk toe.</string>
     <string name="bh_less">Een volle lading gaat %1$d%% korter mee dan in %2$s</string>

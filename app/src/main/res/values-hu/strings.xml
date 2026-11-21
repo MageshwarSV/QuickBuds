@@ -685,6 +685,12 @@
     <string name="bl_case_learning">Tok: tanulás folyamatban. Töltse a fülhallgatókat a tokban néhányszor a becsléshez.</string>
     <string name="bl_last_known">Utoljára ismert szintek, %1$s</string>
     <string name="bl_shared">Minden fülhallgató körülbelül 30 perc hallgatás után kapja meg a saját értékét. Addig a két fülhallgató együttes értékét mutatja.</string>
+    <string name="bs_fast_pair">Fast Pair adás</string>
+    <string name="bs_apple">AirPods adás</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">A fülhallgató saját protokollja (teszt)</string>
+    <string name="bs_updated">Frissítve: %1$s</string>
+    <string name="bs_combined">Egy szint mindkét fülhallgatóhoz: nem jelentik külön a bal és jobb oldalt</string>
     <string name="bh_title">Akkumulátor állapota</string>
     <string name="bh_learning">Akkumulátor állapota: tanulás folyamatban. Minden hónapnyi hallgatás egy oszloppal bővül.</string>
     <string name="bh_less">A teljes feltöltés %1$d%%-kal rövidebb ideig tart, mint %2$s hónapban</string>

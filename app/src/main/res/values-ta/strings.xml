@@ -681,6 +681,12 @@
     <string name="bl_case_learning">கேஸ்: கற்றுக்கொள்கிறது. மதிப்பீட்டுக்கு இயர்பட்களை கேஸில் சில முறை சார்ஜ் செய்யவும்.</string>
     <string name="bl_last_known">கடைசியாக அறிந்த அளவுகள், %1$s</string>
     <string name="bl_shared">சுமார் 30 நிமிடங்கள் கேட்ட பிறகு ஒவ்வொரு இயர்பட்டுக்கும் தனி மதிப்பு கிடைக்கும். அதுவரை இரண்டு இயர்பட்களின் ஒருங்கிணைந்த மதிப்பு காட்டப்படும்.</string>
+    <string name="bs_fast_pair">Fast Pair ஒளிபரப்பு</string>
+    <string name="bs_apple">AirPods ஒளிபரப்பு</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">இயர்பட்களின் சொந்த ப்ரோட்டோகால் (சோதனை)</string>
+    <string name="bs_updated">புதுப்பிக்கப்பட்டது %1$s</string>
+    <string name="bs_combined">இரண்டு இயர்பட்களுக்கும் ஒரே அளவு: இடது, வலது தனித்தனியாகத் தெரிவிக்காது</string>
     <string name="bh_title">பேட்டரி நலம்</string>
     <string name="bh_learning">பேட்டரி நலம்: கற்றுக்கொண்டிருக்கிறது. கேட்கும் ஒவ்வொரு மாதமும் ஒரு பட்டையைச் சேர்க்கும்.</string>
     <string name="bh_less">முழு சார்ஜ் %2$s மாதத்தை விட %1$d%% குறைவாக நீடிக்கும்</string>

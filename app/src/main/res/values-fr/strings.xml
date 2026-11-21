@@ -686,6 +686,12 @@
     <string name="bl_case_learning">Boîtier : apprentissage. Rechargez les écouteurs dans le boîtier plusieurs fois pour obtenir une estimation.</string>
     <string name="bl_last_known">Derniers niveaux connus, %1$s</string>
     <string name="bl_shared">Chaque écouteur obtient sa propre valeur après environ 30 minutes d\'écoute. D\'ici là, il affiche la valeur des deux écouteurs réunis.</string>
+    <string name="bs_fast_pair">Diffusion Fast Pair</string>
+    <string name="bs_apple">Diffusion AirPods</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">Protocole propre aux écouteurs (test)</string>
+    <string name="bs_updated">Mis à jour à %1$s</string>
+    <string name="bs_combined">Un seul niveau pour les deux écouteurs : ils n\'indiquent pas gauche et droite</string>
     <string name="bh_title">État de la batterie</string>
     <string name="bh_learning">État de la batterie : apprentissage. Chaque mois d\'écoute ajoute une barre.</string>
     <string name="bh_less">Une charge complète dure %1$d%% de moins qu\'en %2$s</string>

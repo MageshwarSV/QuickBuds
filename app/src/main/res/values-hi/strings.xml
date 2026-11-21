@@ -687,6 +687,12 @@
     <string name="bl_case_learning">केस: सीख रहा है। अनुमान के लिए ईयरबड्स को केस में कुछ बार चार्ज करें।</string>
     <string name="bl_last_known">आखिरी बार ज्ञात स्तर, %1$s</string>
     <string name="bl_shared">लगभग 30 मिनट सुनने के बाद हर ईयरबड को अपना अलग आँकड़ा मिलता है। तब तक यह दोनों ईयरबड्स का संयुक्त आँकड़ा दिखाता है।</string>
+    <string name="bs_fast_pair">Fast Pair ब्रॉडकास्ट</string>
+    <string name="bs_apple">AirPods ब्रॉडकास्ट</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">इयरबड्स का अपना प्रोटोकॉल (टेस्ट)</string>
+    <string name="bs_updated">अपडेट किया गया %1$s</string>
+    <string name="bs_combined">दोनों इयरबड्स के लिए एक लेवल: वे बायां और दायां अलग नहीं बताते</string>
     <string name="bh_title">बैटरी हेल्थ</string>
     <string name="bh_learning">बैटरी हेल्थ: सीख रहा है। सुनने का हर महीना एक बार जोड़ता है।</string>
     <string name="bh_less">फ़ुल चार्ज %2$s की तुलना में %1$d%% कम चलता है</string>

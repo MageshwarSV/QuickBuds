@@ -685,6 +685,12 @@
     <string name="bl_case_learning">কেস: শিখছে। অনুমানের জন্য ইয়ারবাড কয়েকবার কেসে চার্জ করুন।</string>
     <string name="bl_last_known">সর্বশেষ জানা স্তর, %1$s</string>
     <string name="bl_shared">প্রায় ৩০ মিনিট শোনার পর প্রতিটি ইয়ারবাড নিজের সংখ্যা পায়। তার আগে দুটি ইয়ারবাডের একত্রিত সংখ্যা দেখায়।</string>
+    <string name="bs_fast_pair">Fast Pair ব্রডকাস্ট</string>
+    <string name="bs_apple">AirPods ব্রডকাস্ট</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">ইয়ারবাডসের নিজস্ব প্রোটোকল (পরীক্ষামূলক)</string>
+    <string name="bs_updated">আপডেট: %1$s</string>
+    <string name="bs_combined">দুই ইয়ারবাডের জন্য একটি লেভেল: বাম ও ডান আলাদা জানায় না</string>
     <string name="bh_title">ব্যাটারির স্বাস্থ্য</string>
     <string name="bh_learning">ব্যাটারির স্বাস্থ্য: শিখছে। শোনার প্রতি মাসে একটি বার যোগ হয়।</string>
     <string name="bh_less">ফুল চার্জ %2$s-এর তুলনায় %1$d%% কম চলে</string>

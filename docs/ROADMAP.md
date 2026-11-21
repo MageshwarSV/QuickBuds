@@ -26,6 +26,13 @@ Finish each step before the next one starts.
 ## Open
 
 - **Buds 4 check of v4.5.0:** he checks the per-model `0x010D` query and the `0x012F` batch on the Buds 4.
+- **Other brands' battery** ([OTHER-BRANDS.md](./OTHER-BRANDS.md)):
+  - **Next — tests:** he and his friends test the Experimental rows (AirPods, Galaxy Buds, Nothing, SoundPEATS,
+    EarFun, the boAt probe, the Fast Pair stream) and send the `BRAND BATTERY:` / `FASTPAIR:` log lines.
+  - **Open — Sony:** the per-model v1/v2 table and the init exchange first (v1 `0x22` is power off).
+  - **Open — Soundcore, Huawei / Honor, Bose:** adapters from the facts in the research.
+  - **Open — JBL:** needs a BLE GATT session reader.
+  - **Parked — Xiaomi / Redmi:** needs a challenge-response login.
 
 ## Waiting on others
 

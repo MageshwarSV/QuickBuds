@@ -686,6 +686,12 @@
     <string name="bl_case_learning">充电盒：学习中。请将耳机在充电盒中充几次电以获得估算。</string>
     <string name="bl_last_known">上次已知电量，%1$s</string>
     <string name="bl_shared">收听约 30 分钟后，每只耳机会显示各自的数值。在此之前，显示两只耳机的合计数值。</string>
+    <string name="bs_fast_pair">Fast Pair 广播</string>
+    <string name="bs_apple">AirPods 广播</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">耳机自有协议(测试)</string>
+    <string name="bs_updated">更新于 %1$s</string>
+    <string name="bs_combined">两只耳机共用一个电量:不分别报告左右</string>
     <string name="bh_title">电池健康</string>
     <string name="bh_learning">电池健康：学习中。每听满一个月就增加一根柱条。</string>
     <string name="bh_less">充满电的续航比 %2$s 短 %1$d%%</string>

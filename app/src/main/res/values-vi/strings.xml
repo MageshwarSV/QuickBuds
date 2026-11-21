@@ -686,6 +686,12 @@
     <string name="bl_case_learning">Hộp sạc: đang học. Hãy sạc tai nghe trong hộp vài lần để có ước tính.</string>
     <string name="bl_last_known">Mức đã biết gần nhất, %1$s</string>
     <string name="bl_shared">Mỗi tai nghe có số liệu riêng sau khoảng 30 phút nghe. Cho đến lúc đó, nó hiển thị số liệu chung của cả hai tai nghe.</string>
+    <string name="bs_fast_pair">Phát sóng Fast Pair</string>
+    <string name="bs_apple">Phát sóng AirPods</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">Giao thức riêng của tai nghe (thử nghiệm)</string>
+    <string name="bs_updated">Đã cập nhật %1$s</string>
+    <string name="bs_combined">Một mức cho cả hai tai nghe: chúng không báo trái và phải riêng</string>
     <string name="bh_title">Tình trạng pin</string>
     <string name="bh_learning">Tình trạng pin: đang học. Mỗi tháng nghe sẽ thêm một cột.</string>
     <string name="bh_less">Một lần sạc đầy dùng được ít hơn %1$d%% so với %2$s</string>

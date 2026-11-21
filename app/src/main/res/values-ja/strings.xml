@@ -684,6 +684,12 @@
     <string name="bl_case_learning">ケース: 学習中。イヤホンをケースで数回充電すると推定できます。</string>
     <string name="bl_last_known">最後に確認したレベル、%1$s</string>
     <string name="bl_shared">約30分聴くと、左右のイヤホンそれぞれの値が表示されます。それまでは両方のイヤホンを合わせた値を表示します。</string>
+    <string name="bs_fast_pair">Fast Pairのブロードキャスト</string>
+    <string name="bs_apple">AirPodsのブロードキャスト</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">イヤホン独自のプロトコル(テスト)</string>
+    <string name="bs_updated">更新: %1$s</string>
+    <string name="bs_combined">両方のイヤホンで1つのレベル: 左右は別々に報告されません</string>
     <string name="bh_title">バッテリーの状態</string>
     <string name="bh_learning">バッテリーの状態: 学習中。聴いた月ごとにバーが1本増えます。</string>
     <string name="bh_less">満充電での使用時間は%2$sより%1$d%%短いです</string>

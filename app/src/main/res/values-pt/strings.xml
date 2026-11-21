@@ -686,6 +686,12 @@
     <string name="bl_case_learning">Estojo: a aprender. Carregue os auriculares no estojo algumas vezes para obter uma estimativa.</string>
     <string name="bl_last_known">Últimos níveis conhecidos, %1$s</string>
     <string name="bl_shared">Cada auricular obtém o seu próprio valor após cerca de 30 minutos de audição. Até lá, mostra o valor de ambos os auriculares em conjunto.</string>
+    <string name="bs_fast_pair">Transmissão Fast Pair</string>
+    <string name="bs_apple">Transmissão AirPods</string>
+    <string name="bs_stream">Fast Pair</string>
+    <string name="bs_brand">Protocolo próprio dos fones (teste)</string>
+    <string name="bs_updated">Atualizado às %1$s</string>
+    <string name="bs_combined">Um nível para os dois fones: eles não informam esquerdo e direito</string>
     <string name="bh_title">Saúde da bateria</string>
     <string name="bh_learning">Saúde da bateria: aprendendo. Cada mês de uso adiciona uma barra.</string>
     <string name="bh_less">Uma carga completa dura %1$d%% menos que em %2$s</string>
