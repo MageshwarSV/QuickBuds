@@ -147,6 +147,11 @@ class BudsService : Service(), BudsConnectionManager.Listener {
             }
             // Bike mode by itself: the speed option, and Bike mode turned on or off (by hand, or by itself).
             com.spizganed.quickbuds.calls.BikeAuto.KEY_SPEED -> syncSpeed()
+            // Find My Phone: subscribe to the buds' gesture event, or not.
+            com.spizganed.quickbuds.findphone.FindPhone.KEY_ENABLED -> {
+                com.spizganed.quickbuds.findphone.FindPhone.counter.reset()
+                manager?.registerEvents()
+            }
             com.spizganed.quickbuds.calls.VoiceAnswer.KEY_ENABLED, com.spizganed.quickbuds.calls.BikeMode.KEY_VOICE_ANSWER -> {
                 autoAnswer?.update()
                 // Turned off: the microphone goes now. Turned on: it comes when an app screen asks (it is open now).
@@ -333,6 +338,7 @@ class BudsService : Service(), BudsConnectionManager.Listener {
                 voiceMusic.sync()
             }
             // A calls screen is open: a permission granted again changes no setting, so look again.
+            ACTION_FIND_PHONE_STOP -> com.spizganed.quickbuds.findphone.FinderAlarm.stop(this, "stop button")
             ACTION_CALLS_SYNC -> {
                 autoAnswer?.update()
                 voiceMusic.sync()
@@ -451,18 +457,18 @@ class BudsService : Service(), BudsConnectionManager.Listener {
 
         val notification: Notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(this, channelId)
-                .setContentTitle("QuickBuds")
+                .setContentTitle(getString(R.string.app_name))
                 .setContentText("Maintaining connection to earbuds")
-                .setSmallIcon(R.drawable.ic_stat_buds)
+                .setSmallIcon(R.drawable.ic_stat_loop)
                 .setOngoing(false)
                 .setShowWhen(false)
                 .build()
         } else {
             @Suppress("DEPRECATION")
             Notification.Builder(this)
-                .setContentTitle("QuickBuds")
+                .setContentTitle(getString(R.string.app_name))
                 .setContentText("Maintaining connection to earbuds")
-                .setSmallIcon(R.drawable.ic_stat_buds)
+                .setSmallIcon(R.drawable.ic_stat_loop)
                 .setOngoing(false)
                 .setShowWhen(false)
                 .build()
@@ -538,6 +544,7 @@ class BudsService : Service(), BudsConnectionManager.Listener {
         voiceMusic.destroy()
         budSeparation.reset()
         speedWatch.stop()
+        com.spizganed.quickbuds.findphone.FinderAlarm.stop(this, "service ends")
         com.spizganed.quickbuds.calls.VoiceAnswer.askingChanged = null
         // The next service starts without the microphone type.
         microphoneReady = false
@@ -587,6 +594,9 @@ class BudsService : Service(), BudsConnectionManager.Listener {
     override fun onConnected(connected: Boolean) {
         // Each connection starts from nothing: a bud in a closed case reports the same as a bud left behind.
         budSeparation.reset()
+        // Taps of an earlier link do not count with new ones.
+        com.spizganed.quickbuds.findphone.FindPhone.counter.reset()
+        if (!connected) com.spizganed.quickbuds.findphone.FindPhone.gestures = null
         syncLocationBuffer()
         syncSpeed()
         other?.onSupportedBudsChanged()
@@ -670,6 +680,16 @@ class BudsService : Service(), BudsConnectionManager.Listener {
             com.spizganed.quickbuds.usage.CaseCharge.record(this, address, com.spizganed.quickbuds.usage.CaseSnap(
                 st.leftBattery, st.rightBattery, st.caseBattery, leftDocked = !leftInUse, rightDocked = !rightInUse,
                 caseCharging = chargingCase, atMs = System.currentTimeMillis()))
+        }
+    }
+
+    /** Find My Phone: 4 taps on one earbud ring this phone. */
+    override fun onGesture(side: Int, act: Int) {
+        val fp = com.spizganed.quickbuds.findphone.FindPhone
+        if (!fp.enabled(this)) return
+        if (fp.counter.feed(side, act, android.os.SystemClock.elapsedRealtime())) {
+            com.spizganed.quickbuds.findphone.FinderAlarm.ring(this,
+                com.spizganed.quickbuds.findphone.FinderAlarm.uriFor(this, fp.sound(this)), "4 taps")
         }
     }
 
@@ -802,6 +822,9 @@ class BudsService : Service(), BudsConnectionManager.Listener {
          */
         fun micWanted(c: Context) = com.spizganed.quickbuds.calls.VoiceAnswer.switchedOn(c) ||
             com.spizganed.quickbuds.music.VoiceMusic.switchedOn(c) || com.spizganed.quickbuds.calls.BikeMode.voiceAnswer(c)
+
+        /** Find My Phone's notification: Stop. */
+        const val ACTION_FIND_PHONE_STOP = "com.spizganed.quickbuds.FIND_PHONE_STOP"
 
         /** Calls screens: auto-answer and voice music look at the permissions again. */
         const val ACTION_CALLS_SYNC = "com.spizganed.quickbuds.CALLS_SYNC"

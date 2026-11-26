@@ -101,7 +101,7 @@ class QuickBudsApp : Application() {
         val code = runCatching {
             androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(packageManager.getPackageInfo(packageName, 0))
         }.getOrDefault(-1L)
-        com.spizganed.quickbuds.bluetooth.PacketLogger.log("APP: QuickBuds ${com.spizganed.quickbuds.ui.UpdateChecker.installed(this)} " +
+        com.spizganed.quickbuds.bluetooth.PacketLogger.log("APP: Loop ${com.spizganed.quickbuds.ui.UpdateChecker.installed(this)} " +
             "($code) started, Android ${Build.VERSION.RELEASE}, ${Build.MANUFACTURER} ${Build.MODEL}")
         // A preset change rebuilds every open activity when it comes back to the front,
         // because colours are applied at inflation (ThemeRes.select), not afterwards.
@@ -151,7 +151,7 @@ class QuickBudsApp : Application() {
         }
 
         val body = buildString {
-            appendLine("QuickBuds crash report")
+            appendLine("Loop crash report")
             appendLine("time   : $stampFull")
             appendLine("device : $device")
             appendLine("thread : ${thread.name}")
@@ -336,7 +336,7 @@ object CrashLogger {
         Intent(Intent.ACTION_SEND).apply {
             if (context.packageName.isEmpty()) return@apply
             type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, "QuickBuds crash report")
+            putExtra(Intent.EXTRA_SUBJECT, "Loop crash report")
             putExtra(Intent.EXTRA_TEXT, report)
         }
 }

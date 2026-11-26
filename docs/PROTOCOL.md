@@ -442,6 +442,9 @@ Example, right hold: `AA 0D 00 00 04 02 FF 06 00 F1 02 01 04 08 03`.
 - `act 00` frames (seen on a single tap) are some other event, not a binding `[GUESS]`.
 - **Diagnostic only, never a control signal.** Read the effect from the ANC / game / wear pushes. One
   double tap can report twice; the app follows faithfully, do not "fix" it.
+- **Subscribed only for Find My Phone** (Android): while it is on, the `0x0205` list also holds `F1`, when
+  `0x8200` offers it. Nord Buds 3r `[CAPTURE]` offer it (`… 0F F1 F2 F3 F4`) but send no `F1` without the
+  subscription. Find My Phone counts taps by `act` (1, 2, 3); the same event within 300 ms counts once.
 
 ---
 

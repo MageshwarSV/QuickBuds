@@ -167,7 +167,7 @@ class DevToolsActivity : Activity() {
             }
             val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val tabName = listOf("simple", "detailed")[mode]
-            val label = "QuickBuds Log ($tabName)"
+            val label = "Loop Log ($tabName)"
             cm.setPrimaryClip(ClipData.newPlainText(label, body))
             Toast.makeText(
                 this,

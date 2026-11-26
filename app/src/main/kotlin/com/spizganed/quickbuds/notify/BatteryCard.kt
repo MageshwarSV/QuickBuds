@@ -98,7 +98,7 @@ object BatteryCard {
             if (showRight) level(context, R.string.status_right, state.rightBattery) else null
         ).joinToString(" · ")
         val n = Notification.Builder(context, CHANNEL)
-            .setSmallIcon(R.drawable.ic_stat_buds)
+            .setSmallIcon(R.drawable.ic_stat_loop)
             .setContentTitle(name)
             .setContentText(summary)
             .setStyle(Notification.DecoratedCustomViewStyle())
@@ -176,7 +176,7 @@ object BatteryCard {
         ).joinToString(" · ")
         val id = otherId(address)
         val n = Notification.Builder(context, CHANNEL)
-            .setSmallIcon(R.drawable.ic_stat_buds)
+            .setSmallIcon(R.drawable.ic_stat_loop)
             .setContentTitle(name)
             .setContentText(summary)
             .setStyle(Notification.DecoratedCustomViewStyle())

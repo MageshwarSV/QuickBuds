@@ -36,7 +36,7 @@ object ProblemReport {
         val model = ModelCatalog.current(c)?.name ?: p.getString(ModelCatalog.KEY_DEVICE_NAME, null) ?: "unknown buds"
         val id = p.getString(Capabilities.KEY_PRODUCT_ID, null) ?: "?"
         val fw = p.getString(BudsConnectionManager.KEY_FIRMWARE, null) ?: "?"
-        return "QuickBuds ${UpdateChecker.installed(c)} | ${Build.MANUFACTURER} ${Build.MODEL} | " +
+        return "Loop ${UpdateChecker.installed(c)} | ${Build.MANUFACTURER} ${Build.MODEL} | " +
             "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT}) | $model ($id) firmware $fw"
     }
 

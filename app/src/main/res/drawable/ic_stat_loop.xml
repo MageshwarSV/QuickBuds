@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Status-bar small icon of every notification: the Loop logo (ic_launcher_monochrome.xml's paths), scaled 1.35
+  around its centre so it is about 22 units wide in the 24 viewport. Android draws small icons as a silhouette
+  from the alpha channel only, so it stays solid white.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="1254"
+    android:viewportHeight="1254">
+    <group
+        android:pivotX="633"
+        android:pivotY="629"
+        android:scaleX="1.35"
+        android:scaleY="1.35"
+        android:translateX="-6"
+        android:translateY="-2">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M574,322 L778,322 L494,698 L788,698 L698,812 L208,812 Z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M716,500 L958,500 Q976,500 986,514 L1050,610 Q1062,628 1050,645 L918,822 Q908,834 894,840 L668,936 L908,640 L884,602 L636,602 Z" />
+    </group>
+</vector>

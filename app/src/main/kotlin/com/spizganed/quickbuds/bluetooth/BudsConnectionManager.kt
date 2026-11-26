@@ -75,6 +75,12 @@ class BudsConnectionManager(private val context: Context) {
          */
         fun onFitResult(left: Int, right: Int) {}
 
+        /**
+         * A gesture fired (`0x0204` `F1`): [side] 1 left, 2 right; [act] the gesture table's: 1 single, 2 double,
+         * 3 triple, 4 hold, 5 slide, 6 long hold. Only while subscribed ([registerEvents], Find My Phone on).
+         */
+        fun onGesture(side: Int, act: Int) {}
+
         /** Personalized ANC: `0x811A`, whether the buds hold a result from an earlier test. */
         fun onPersonalNoiseStored(stored: Boolean) {}
         /** Personalized ANC: the test's result (`0x0204` subType `0x0B`), 0 done, 1-5 why it failed. */
@@ -206,6 +212,32 @@ class BudsConnectionManager(private val context: Context) {
 
     fun isConnected(): Boolean = isReady && bluetoothSocket?.isConnected == true
 
+    /**
+     * Subscribes to the buds' events: on connect, and again when Find My Phone is switched on or off (it adds the
+     * gesture event `F1`). Blocking: on the connect thread, or a thread of its own.
+     */
+    private fun registerEventsBlocking() {
+        val ids = OpoProtocol.notifyIds(Capabilities.supports(context, OpoProtocol.CMD_FIT_TEST),
+            Capabilities.supports(context, OpoProtocol.CMD_GOLDEN_DETECT),
+            Capabilities.supports(context, OpoProtocol.CMD_PERSONAL_NOISE), offeredEvents,
+            gestures = com.spizganed.quickbuds.findphone.FindPhone.enabled(context))
+        when {
+            ids.isEmpty() -> log("skip register notify: the buds offer none of ours")
+            Capabilities.supports(context, OpoProtocol.CMD_REGISTER_NOTIFY) ->
+                sendRawBlocking(OpoProtocol.registerNotifications(ids), "register notify")
+            else -> ids.forEach { sendRawBlocking(OpoProtocol.registerOne(it), "register notify $it") }
+        }
+    }
+
+    /** Find My Phone switched on or off while connected: subscribe again, with or without the gesture event. */
+    fun registerEvents() {
+        if (!isConnected()) return
+        Thread { runCatching { registerEventsBlocking() } }.apply { isDaemon = true }.start()
+    }
+
+    /** Whether these buds offer the gesture event (`0x8200`): Find My Phone can count taps on them. Null: not known yet. */
+    fun offersGestures(): Boolean? = offeredEvents?.let { OpoProtocol.EVT_GESTURE in it }
+
     /** Drops or restores the phone's own audio link to the buds ([PhoneAudio]): the pill's Connect / Disconnect. */
     fun setPhoneAudio(device: BluetoothDevice, on: Boolean) = PhoneAudio.set(context, device, on) { log(it) }
 
@@ -313,6 +345,7 @@ class BudsConnectionManager(private val context: Context) {
 
     private fun runInitSequence() {
         offeredEvents = null
+        com.spizganed.quickbuds.findphone.FindPhone.gestures = null
         Thread {
             try {
                 delay(300); sendRawBlocking(OpoProtocol.buildHandshake(), "handshake")
@@ -328,15 +361,7 @@ class BudsConnectionManager(private val context: Context) {
                     delay(200); sendRawBlocking(packet, label)
                 }
                 delay(200)
-                val ids = OpoProtocol.notifyIds(Capabilities.supports(context, OpoProtocol.CMD_FIT_TEST),
-                    Capabilities.supports(context, OpoProtocol.CMD_GOLDEN_DETECT),
-                    Capabilities.supports(context, OpoProtocol.CMD_PERSONAL_NOISE), offeredEvents)
-                when {
-                    ids.isEmpty() -> log("skip register notify: the buds offer none of ours")
-                    Capabilities.supports(context, OpoProtocol.CMD_REGISTER_NOTIFY) ->
-                        sendRawBlocking(OpoProtocol.registerNotifications(ids), "register notify")
-                    else -> ids.forEach { sendRawBlocking(OpoProtocol.registerOne(it), "register notify $it") }
-                }
+                registerEventsBlocking()
                 query(OpoProtocol.CMD_QUERY_STATUS, statusQuery(), "query status")
                 query(OpoProtocol.CMD_QUERY_ANC, OpoProtocol.queryAncMode(), "query anc")
                 query(OpoProtocol.CMD_QUERY_ALERT_VOLUME, OpoProtocol.queryAlertVolume(), "query alert volume")
@@ -1150,7 +1175,11 @@ class BudsConnectionManager(private val context: Context) {
             ?.let { sendRaw(it, "answer %04X".format(cmd)) }
         if (cmd == OpoProtocol.REQ_TIME) return
 
-        if (cmd == 0x8200) { offeredEvents = OpoProtocol.offeredEvents(payload); return }
+        if (cmd == 0x8200) {
+            offeredEvents = OpoProtocol.offeredEvents(payload)
+            com.spizganed.quickbuds.findphone.FindPhone.gestures = offeredEvents?.let { OpoProtocol.EVT_GESTURE in it }
+            return
+        }
         if (cmd == OpoProtocol.CMD_BATCH_REPLY) {
             for ((c, p) in OpoProtocol.batchReplies(payload))
                 handlePacket(OpoProtocol.buildPacket(c, packet[6].toInt() and 0xFF, p), batched = true)
@@ -1300,6 +1329,12 @@ class BudsConnectionManager(private val context: Context) {
         if (cmd == OpoProtocol.CMD_ACTIVE_REPORT &&
             UserInteractionParser.isUserInteractionEvent(payload)) {
             log("BTN EVT: ${UserInteractionParser.describe(payload)}")
+            // Side and act as the gesture table numbers them (PROTOCOL.md §6).
+            if (payload.size >= 4) {
+                val side = payload[1].toInt() and 0xFF
+                val act = payload[3].toInt() and 0xFF
+                handler.post { listeners.forEach { it.onGesture(side, act) } }
+            }
             return
         }
 

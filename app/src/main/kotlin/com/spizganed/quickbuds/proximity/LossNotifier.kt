@@ -230,7 +230,7 @@ object LossNotifier {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val builder = Notification.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_stat_buds)
+            .setSmallIcon(R.drawable.ic_stat_loop)
             // Title and text stay for the lock screen, watches and screen readers; the cards are what shows.
             .setContentTitle(title)
             .setContentText(body)

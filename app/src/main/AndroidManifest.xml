@@ -25,6 +25,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Auto-reply: a call declined by voice gets a text (off by default). -->
     <uses-permission android:name="android.permission.SEND_SMS" />
+    <!-- Find My Phone: alarms through Do Not Disturb while it rings, after the user allows it in Android's settings. -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <!-- Phones without a SIM (tablets) can still install the app; auto-reply then does nothing. -->
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <!-- Widget taps tick through the vibrator (Haptics.tick); no view of ours is on screen then. -->
@@ -203,6 +205,10 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.ChargeReminderActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.FindPhoneActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <!-- Charge reminder: the daily alarm, set again after a reboot or an update. -->

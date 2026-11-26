@@ -68,7 +68,7 @@ object SimpleLog {
             msg.startsWith("GOLDEN STATUS") -> got("Hearing test update")
             msg.startsWith("ERROR ") -> problem("Error: " + msg.removePrefix("ERROR "))
             msg.startsWith("UNATTR") || msg.startsWith("DISCARDED") ->
-                problem("The buds sent something QuickBuds does not understand (see Detailed)")
+                problem("The buds sent something Loop does not understand (see Detailed)")
             "failed" in msg || "error" in msg || "refused" in msg || "nothing sent" in msg || "not sent" in msg ||
                 "no active connection" in msg || "not connected" in msg -> problem("Problem: $msg")
             else -> null

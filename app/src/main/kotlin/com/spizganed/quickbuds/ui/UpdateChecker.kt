@@ -149,7 +149,7 @@ object UpdateChecker {
         tag != prefs.getString(KEY_ANNOUNCED, null) && tag != prefs.getString(KEY_IGNORED, null)
 
     /**
-     * "QuickBuds X is available", once per version. View opens the update screen. Ignore skips this version:
+     * "Loop X is available", once per version. View opens the update screen. Ignore skips this version:
      * its notification goes, and none comes again for it.
      */
     private fun popup(activity: Activity, tag: String, installed: String) {
@@ -209,7 +209,7 @@ object UpdateChecker {
             Intent(c, UpdateActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val n = Notification.Builder(c, CHANNEL)
-            .setSmallIcon(R.drawable.ic_stat_buds)
+            .setSmallIcon(R.drawable.ic_stat_loop)
             .setContentTitle(c.getString(R.string.update_found_title, tag.removePrefix("v")))
             .setContentText(c.getString(R.string.update_found_body, installed))
             .setContentIntent(open)

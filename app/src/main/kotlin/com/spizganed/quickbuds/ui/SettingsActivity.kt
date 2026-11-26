@@ -86,6 +86,11 @@ class SettingsActivity : Activity() {
             startActivity(Intent(this, ChargeReminderActivity::class.java))
         }
         reminderSubtitle = SettingRowFactory.subtitle(this, reminderRow)
+        // Find My Phone: 4 taps on one earbud ring this phone.
+        val findPhoneRow = link(R.drawable.ic_earbud, R.string.fp_title, 0) {
+            startActivity(Intent(this, FindPhoneActivity::class.java))
+        }
+        findPhoneSubtitle = SettingRowFactory.subtitle(this, findPhoneRow)
         section(
             R.string.settings_usage_section,
             link(R.drawable.ic_usage, R.string.usage_title, R.string.settings_stats_sub) {
@@ -103,6 +108,7 @@ class SettingsActivity : Activity() {
             batteryRow(prefs),
             lowBatteryRow(prefs),
             reminderRow,
+            findPhoneRow,
             sensitivityRow
         )
 
@@ -145,6 +151,7 @@ class SettingsActivity : Activity() {
     private var callsSubtitle: android.widget.TextView? = null
     private var bikeSubtitle: android.widget.TextView? = null
     private var reminderSubtitle: android.widget.TextView? = null
+    private var findPhoneSubtitle: android.widget.TextView? = null
 
     /**
      * Background service switch. Turning it off asks first (the widget and the automatic reconnect
@@ -378,6 +385,7 @@ class SettingsActivity : Activity() {
         callsSubtitle?.text = AutoAnswerActivity.summary(this)
         bikeSubtitle?.text = BikeModeActivity.summary(this)
         reminderSubtitle?.text = ChargeReminderActivity.summary(this)
+        findPhoneSubtitle?.text = FindPhoneActivity.summary(this)
         renderUsageValues()
         // Back from Android's notification settings: the rows say what is allowed now.
         renderNotifyRows()

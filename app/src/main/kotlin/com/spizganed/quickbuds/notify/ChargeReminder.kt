@@ -121,7 +121,7 @@ object ChargeReminder {
         val body = c.getString(R.string.cr_body, names, below)
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(c, CHANNEL)
             else @Suppress("DEPRECATION") Notification.Builder(c)
-        val n = builder.setSmallIcon(R.drawable.ic_stat_buds)
+        val n = builder.setSmallIcon(R.drawable.ic_stat_loop)
             .setContentTitle(c.getString(R.string.cr_notif_title))
             .setContentText(body)
             .setStyle(Notification.BigTextStyle().bigText(body))

@@ -283,11 +283,16 @@ object OpoProtocol {
      * as HeyMelody subscribes to the offered list only (PROTOCOL.md §4). Some firmwares never ack a
      * list with others.
      */
-    fun notifyIds(fitTest: Boolean, golden: Boolean, personalNoise: Boolean, offered: Set<Int>?): List<Int> =
+    fun notifyIds(fitTest: Boolean, golden: Boolean, personalNoise: Boolean, offered: Set<Int>?, gestures: Boolean = false): List<Int> =
         (listOf(0x01, 0x02, 0x03) + (if (fitTest) listOf(EVT_FIT_TEST) else emptyList()) +
             (if (golden) listOf(EVT_GOLDEN_STATUS) else emptyList()) +
-            (if (personalNoise) listOf(EVT_PERSONAL_NOISE) else emptyList()))
+            (if (personalNoise) listOf(EVT_PERSONAL_NOISE) else emptyList()) +
+            // Find My Phone counts taps from these. Only when the buds list them: 0x8200 says so.
+            (if (gestures && offered != null) listOf(EVT_GESTURE) else emptyList()))
             .filter { offered == null || it in offered }
+
+    /** `F1`: a gesture fired (PROTOCOL.md §6), `F1 <side> <btn> <act> <fn> <context> …`. For Find My Phone. */
+    const val EVT_GESTURE = 0xF1
 
     fun registerNotifications(ids: List<Int>): ByteArray =
         buildPacket(CMD_REGISTER_NOTIFY, payload = byteArrayOf(ids.size.toByte()) + ids.map { it.toByte() })

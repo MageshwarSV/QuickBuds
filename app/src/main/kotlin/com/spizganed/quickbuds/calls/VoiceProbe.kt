@@ -243,7 +243,7 @@ object VoiceProbe {
                 @Deprecated("Deprecated in Java")
                 override fun onError(utteranceId: String?) { main.post { log("prompt error"); listen() } }
             })
-            t.speak("QuickBuds test. Say yes or no.", TextToSpeech.QUEUE_FLUSH, null, "probe")
+            t.speak("Loop test. Say yes or no.", TextToSpeech.QUEUE_FLUSH, null, "probe")
         }
         main.postDelayed({ if (!listened) { log("prompt did not finish in time"); listen() } }, SPEAK_TIMEOUT_MS)
     }

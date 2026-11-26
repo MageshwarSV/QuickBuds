@@ -155,7 +155,7 @@ object SleepTimer {
     fun firingNotification(c: Context): Notification {
         nm(c)?.let { ensureChannel(c, it) }
         return Notification.Builder(c, CHANNEL)
-            .setSmallIcon(R.drawable.ic_stat_buds)
+            .setSmallIcon(R.drawable.ic_stat_loop)
             .setContentTitle(c.getString(R.string.sleep_title))
             .setShowWhen(false)
             .build()
@@ -168,7 +168,7 @@ object SleepTimer {
         ensureChannel(c, nm)
         val time = android.text.format.DateFormat.getTimeFormat(c).format(java.util.Date(atMs))
         val n = Notification.Builder(c, CHANNEL)
-            .setSmallIcon(R.drawable.ic_stat_buds)
+            .setSmallIcon(R.drawable.ic_stat_loop)
             .setContentTitle(c.getString(R.string.sleep_title))
             .setContentText(c.getString(R.string.sleep_active, time))
             .setOngoing(true)
@@ -190,7 +190,7 @@ object SleepTimer {
         val settings = PendingIntent.getActivity(c, 63, Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val n = Notification.Builder(c, CHANNEL)
-            .setSmallIcon(R.drawable.ic_stat_buds)
+            .setSmallIcon(R.drawable.ic_stat_loop)
             .setContentTitle(c.getString(R.string.sleep_done_title))
             .setContentText(c.getString(R.string.sleep_done_body))
             .setStyle(Notification.BigTextStyle().bigText(c.getString(R.string.sleep_done_body)))
